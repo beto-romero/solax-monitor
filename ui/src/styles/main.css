@@ -63,6 +63,10 @@ body {
 .serial-toggle svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .serial-toggle:hover { color: var(--text); background: var(--surface); }
 .serial-toggle:focus-visible { outline: 2px solid var(--sun); outline-offset: 2px; }
+.stat[data-system="inverter_serial"] .name {
+  display: flex;
+  align-items: center;
+}
 
 .pill {
   display: inline-flex;
