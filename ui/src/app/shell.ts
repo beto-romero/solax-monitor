@@ -65,11 +65,8 @@ export function startShell(context: Context, state: AppState): void {
   const exportLink = byId<HTMLAnchorElement>("export");
 
   const isDemo = document.documentElement.dataset.demo === "true";
-  const serial = context.registry.site.inverter_serial;
   if (isDemo) {
     byId("subtitle").textContent = "Synthetic telemetry · browser-local time";
-  } else if (serial) {
-    byId("subtitle").textContent = serial + " on your local network";
   }
 
   const paintStatus = () => {

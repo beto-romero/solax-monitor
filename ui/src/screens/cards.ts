@@ -57,6 +57,16 @@ function sectionCard(name: string, title: string): HTMLElement {
   return card;
 }
 
+function paintSerialToggle(button: HTMLButtonElement, shown: boolean): void {
+  button.innerHTML = shown
+    ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>'
+    : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 3 18 18M10.6 5.2A10.8 10.8 0 0 1 12 5c6.4 0 10 7 10 7a15.7 15.7 0 0 1-3.1 3.8M6.2 6.3C3.5 8.1 2 12 2 12s3.6 7 10 7a10 10 0 0 0 4-.8"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>';
+  const action = shown ? "Hide" : "Show";
+  button.setAttribute("aria-pressed", String(shown));
+  button.setAttribute("aria-label", `${action} inverter number`);
+  button.title = `${action} inverter number`;
+}
+
 export interface Cards {
   readonly element: HTMLElement;
   paint(now: Now | null): void;
@@ -100,6 +110,12 @@ export function createCards(context: Context): Cards {
   const systemCard = sectionCard("system", "System");
   systemCard.id = "system-card";
   const systemValues = new Map<string, HTMLElement>();
+  let showInverterNumber = false;
+  try {
+    showInverterNumber = localStorage.getItem("solax.show-inverter-number") === "true";
+  } catch {
+    // The control works for the current page even when storage is blocked.
+  }
   for (const [key, label] of SYSTEM_ROWS) {
     const row = document.createElement("div");
     row.className = "stat";
@@ -107,10 +123,41 @@ export function createCards(context: Context): Cards {
     row.innerHTML = '<span class="name"></span><span class="reading"><span class="live">–</span></span>';
     row.querySelector(".name")!.textContent = label;
     systemValues.set(key, row.querySelector(".live") as HTMLElement);
+    if (key === "inverter_serial") {
+      const value = systemValues.get(key)!;
+      value.textContent = showInverterNumber ? (context.registry.site.inverter_serial || "unknown") : "";
+      const toggle = document.createElement("button");
+      toggle.type = "button";
+      toggle.className = "serial-toggle";
+      paintSerialToggle(toggle, showInverterNumber);
+      toggle.addEventListener("click", () => {
+        showInverterNumber = !showInverterNumber;
+        value.textContent = showInverterNumber ? (context.registry.site.inverter_serial || "unknown") : "";
+        paintSerialToggle(toggle, showInverterNumber);
+        try {
+          localStorage.setItem("solax.show-inverter-number", String(showInverterNumber));
+        } catch {
+          // The current view still updates if persistence is unavailable.
+        }
+        const subtitle = document.getElementById("subtitle");
+        if (subtitle && document.documentElement.dataset.demo !== "true") {
+          subtitle.textContent = showInverterNumber && context.registry.site.inverter_serial
+            ? context.registry.site.inverter_serial + " on your local network"
+            : "Inverter on your local network";
+        }
+      });
+      row.querySelector(".name")!.appendChild(toggle);
+    }
     systemCard.appendChild(row);
   }
   element.appendChild(systemCard);
-  systemValues.get("inverter_serial")!.textContent = context.registry.site.inverter_serial || "unknown";
+  if (showInverterNumber && document.documentElement.dataset.demo !== "true") {
+    const subtitle = document.getElementById("subtitle");
+    if (subtitle && context.registry.site.inverter_serial) subtitle.textContent = context.registry.site.inverter_serial + " on your local network";
+  } else if (document.documentElement.dataset.demo !== "true") {
+    const subtitle = document.getElementById("subtitle");
+    if (subtitle) subtitle.textContent = "Inverter on your local network";
+  }
   systemValues.get("poll_interval")!.textContent = context.intervalSeconds + " s";
 
   return {
