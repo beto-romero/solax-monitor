@@ -1,8 +1,8 @@
 import type uPlot from "uplot";
 import type { Metric } from "../api/bindings";
-import { formatNumber, timeOfDay } from "../format";
+import { formatNumber, timeOfDay, unitLabel } from "../format";
 import type { Pane } from "./panes";
-import { colour, EMBER, pixelRatio, WELL } from "./theme";
+import { axisFont, colour, labelFont, MUTED, pixelRatio, SURFACE, TEXT } from "./theme";
 
 // Space between a peak label and the top of the plot it labels, in CSS pixels.
 const PEAK_LABEL_GAP = 6;
@@ -42,8 +42,8 @@ export function ceilingPlugin(limitWatts: number, scale: string, textSize: numbe
         }
         const ratio = pixelRatio();
         context.save();
-        context.strokeStyle = EMBER;
-        context.globalAlpha = 0.45;
+        context.strokeStyle = MUTED;
+        context.globalAlpha = 0.5;
         context.setLineDash([4 * ratio, 5 * ratio]);
         context.lineWidth = ratio;
         context.beginPath();
@@ -63,13 +63,13 @@ export function ceilingPlugin(limitWatts: number, scale: string, textSize: numbe
         const textHeight = size + ratio;
         const roomAbove = level - 4 * ratio - textHeight >= chart.bbox.top;
         const textBottom = roomAbove ? level - 4 * ratio : level + 4 * ratio + textHeight;
-        context.font = size + "px Inter, system-ui, sans-serif";
+        context.font = axisFont(size);
         const textWidth = context.measureText(label).width;
         context.globalAlpha = 1;
-        context.fillStyle = colour(WELL, 0.85);
+        context.fillStyle = colour(SURFACE, 0.85);
         context.fillRect(textLeft - 3 * ratio, textBottom - size - ratio, textWidth + 6 * ratio, size + 3 * ratio);
-        context.globalAlpha = 0.75;
-        context.fillStyle = EMBER;
+        context.globalAlpha = 1;
+        context.fillStyle = MUTED;
         context.textAlign = "left";
         context.textBaseline = "bottom";
         context.fillText(label, textLeft, textBottom);
@@ -118,7 +118,7 @@ export function peakPlugin(pane: Pane, options: PeakOptions): uPlot.Plugin {
         const producing = options.producing();
 
         context.save();
-        context.font = "700 " + box.size * ratio + "px Inter, system-ui, sans-serif";
+        context.font = labelFont(box.size * ratio);
         const labelWidth = (text: string) => context.measureText(text).width + box.horizontalPadding * 2 * ratio;
 
         // Collected in the chart's own order, so the hero's comes first.
@@ -162,7 +162,7 @@ export function peakPlugin(pane: Pane, options: PeakOptions): uPlot.Plugin {
           }
 
           const time = timeOfDay(chart.data[0][at], options.timezone);
-          const valueText = formatNumber(best, metric.decimals) + " " + metric.unit;
+          const valueText = formatNumber(best, metric.decimals) + " " + unitLabel(metric.unit);
           const text = valueText + "  " + time;
           peaks.push({
             horizontalPosition,
@@ -223,14 +223,14 @@ export function peakPlugin(pane: Pane, options: PeakOptions): uPlot.Plugin {
           context.beginPath();
           context.moveTo(anchor, top + height);
           context.lineTo(peak.horizontalPosition, peak.verticalPosition - radius - 2 * ratio);
-          context.strokeStyle = colour(peak.colour, 0.55);
+          context.strokeStyle = colour(MUTED, 0.4);
           context.lineWidth = ratio;
           context.stroke();
 
           // A ring around the dot so it reads against the line it sits on.
           context.beginPath();
           context.arc(peak.horizontalPosition, peak.verticalPosition, radius + 2 * ratio, 0, Math.PI * 2);
-          context.fillStyle = colour(WELL, 0.85);
+          context.fillStyle = colour(SURFACE, 0.85);
           context.fill();
           context.beginPath();
           context.arc(peak.horizontalPosition, peak.verticalPosition, radius, 0, Math.PI * 2);
@@ -244,13 +244,11 @@ export function peakPlugin(pane: Pane, options: PeakOptions): uPlot.Plugin {
           } else {
             context.rect(peak.left, top, peak.width, height);
           }
-          context.fillStyle = colour(WELL, 0.92);
+          context.fillStyle = colour(SURFACE, 0.92);
           context.fill();
-          context.strokeStyle = colour(peak.colour, 0.5);
-          context.lineWidth = ratio;
-          context.stroke();
 
-          context.fillStyle = peak.colour;
+          // A label wears text ink; the dot beside it carries the series.
+          context.fillStyle = TEXT;
           context.textAlign = "left";
           context.textBaseline = "middle";
           context.fillText(peak.text, peak.left + box.horizontalPadding * ratio, top + height / 2);

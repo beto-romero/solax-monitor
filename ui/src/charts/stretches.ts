@@ -1,6 +1,6 @@
 import type uPlot from "uplot";
 import type { Stretches } from "../api/bindings";
-import { colour, EMBER, pixelRatio, SUN } from "./theme";
+import { colour, HEAT, MUTED, pixelRatio } from "./theme";
 
 /** The parts of the stretches inside the plot, as left and right edges in
  * canvas pixels. One narrower than a pixel is widened to one, so a short
@@ -45,13 +45,15 @@ export interface LimitLine {
 /**
  * Marks the stretches of the day behind the lines, each with a solid strip
  * along the plot's foot. A derate also gets a faint ember wash over the
- * plot's full height, the step down it caused sitting inside it. Time at
- * the limit gets a gold wash only above the limit line, where the power the
- * panels could have given was cut off; washed full height, its dozens of
- * short runs would stripe the whole middle of the day. Reads the stretches
- * at each draw, so today's grow without rebuilding the chart.
+ * plot's full height, the step down it caused sitting inside it, on every
+ * chart, so heat reads straight down from power to temperature. Given a
+ * limit line, time at the limit is marked too, in a neutral wash only above
+ * the line, where the power the panels could have given was cut off; washed
+ * full height, its dozens of short runs would stripe the whole middle of
+ * the day. Reads the stretches at each draw, so today's grow without
+ * rebuilding the chart.
  */
-export function stretchesPlugin(stretchesOf: () => Stretches | null, limit: LimitLine): uPlot.Plugin {
+export function stretchesPlugin(stretchesOf: () => Stretches | null, limit: LimitLine | null): uPlot.Plugin {
   return {
     hooks: {
       drawClear: (chart) => {
@@ -63,13 +65,12 @@ export function stretchesPlugin(stretchesOf: () => Stretches | null, limit: Limi
         const context = chart.ctx;
         // On an overcast day the scale can top out under the limit, and
         // then there is nothing above the line to shade.
-        const limitY = chart.valToPos(limit.watts, limit.scale, true);
+        const limitY = limit ? chart.valToPos(limit.watts, limit.scale, true) : NaN;
         const capHeight = Number.isFinite(limitY) ? Math.min(height, Math.max(0, limitY - top)) : 0;
-        const atLimit = joinClose(stretches.at_limit, JOIN_SECONDS, stretches.derating);
-        const kinds = [
-          { spans: atLimit, hex: SUN, washHeight: capHeight, wash: 0.22 },
-          { spans: stretches.derating, hex: EMBER, washHeight: height, wash: 0.2 },
-        ];
+        const derates = { spans: stretches.derating, hex: HEAT, washHeight: height, wash: 0.2 };
+        const kinds = limit
+          ? [{ spans: joinClose(stretches.at_limit, JOIN_SECONDS, stretches.derating), hex: MUTED, washHeight: capHeight, wash: 0.16 }, derates]
+          : [derates];
         context.save();
         for (const kind of kinds) {
           for (const [from, to] of visibleSpans(kind.spans, xOf, left, left + width)) {

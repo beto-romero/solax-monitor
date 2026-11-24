@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { heroLines, meterCaption } from "./home";
+import { heroLines, meterCaption, verdictOf, type VerdictInput } from "./home";
 
 test("the meter's caption counts down to the grid connection, then measures against the real limit", () => {
   expect(meterCaption(0, 3300, 37)).toBe("Connecting to the grid in 37 s");
@@ -26,4 +26,31 @@ test("no peak yet hides the peak line", () => {
   );
   expect(lines.peak).toBeNull();
   expect(lines.projection).toBe("Projection after 3 full days");
+});
+
+const calm: VerdictInput = {
+  status: { kind: "live", text: "Live", stale: false },
+  severity: "ok",
+  runMode: "Normal",
+  watts: 1650,
+  limitWatts: 3300,
+  countdownSeconds: 0,
+  deratingNow: false,
+  deratesToday: 0,
+  faultReadingsToday: 0,
+};
+
+test("the verdict says all is well only when nothing outranks it", () => {
+  expect(verdictOf(calm)).toEqual({ tone: "good", title: "Producing normally", detail: "No faults or heat derating today" });
+  expect(verdictOf({ ...calm, deratesToday: 2 }).detail).toBe("Stepped down for heat 2 times today");
+});
+
+test("the verdict puts the worst news first", () => {
+  const hot = { ...calm, watts: 2400, deratingNow: true };
+  expect(verdictOf(hot).tone).toBe("heat");
+  expect(verdictOf({ ...calm, watts: 3290 }).tone).toBe("limit");
+  expect(verdictOf({ ...calm, watts: 0 }).tone).toBe("idle");
+  const silent: VerdictInput = { ...hot, status: { kind: "stale", text: "No reading for 2 min", stale: true } };
+  expect(verdictOf(silent).title).toBe("No reading for 2 min");
+  expect(verdictOf({ ...silent, severity: "fault", runMode: "Fault" }).tone).toBe("fault");
 });

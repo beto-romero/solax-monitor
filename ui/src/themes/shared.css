@@ -1,0 +1,19 @@
+/* What the themes have in common: the colour of the plant's mood, and how a
+   round dial sits around the power figure. */
+:root {
+  --tone: var(--good);
+}
+:root[data-tone="idle"] { --tone: var(--faint); }
+:root[data-tone="limit"], :root[data-tone="watch"] { --tone: var(--caution, #ffd166); }
+:root[data-tone="heat"] { --tone: var(--ember); }
+:root[data-tone="fault"] { --tone: var(--alert); }
+
+.gauge-power.dialled { display: grid; justify-items: center; }
+.gauge-power.dialled .gauge-label { justify-self: start; }
+.gauge-power.dialled > :is(.dial, .hero-number) { grid-row: 2; grid-column: 1; }
+.gauge-power.dialled > .hero-number { z-index: 1; align-self: center; margin: 0; }
+.gauge-power.dialled .meter { display: none; }
+.gauge-power.dialled .meter-caption { margin-top: 4px; }
+.dial { display: block; width: min(100%, 300px); height: auto; overflow: visible; }
+.theme-note { margin: 0; font-size: 12px; color: var(--muted); }
+.tip-note.heat { color: var(--ember); }

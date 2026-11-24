@@ -1,0 +1,53 @@
+/* Phosphor. One green ink on a ruled tube; amber only when something is up. */
+:root[data-theme="phosphor"] {
+  --night: #020702; --surface: #041004; --well: #020802; --hairline: #1f5a1c;
+  --text: #c9ffbf; --muted: #6fd463; --faint: #55b04c;
+  --sun: #8dff7a; --mains: #c8ff5c; --ember: #ffb04d; --alert: #ff9a5c; --good: #8dff7a;
+  --caution: #e8ff8a; --radius: 18px; --tip: #0a200a;
+}
+[data-theme="phosphor"] body { font-family: ui-monospace, Menlo, Consolas, "Liberation Mono", monospace; }
+[data-theme="phosphor"] .card {
+  border: 1px solid #2d7a28;
+  background:
+    repeating-linear-gradient(0deg, rgb(141 255 122 / 0.035) 0 1px, transparent 1px 3px),
+    radial-gradient(120% 120% at 50% 30%, #0a240a, var(--surface) 75%);
+  box-shadow: inset 0 0 40px rgb(0 0 0 / 0.7);
+}
+[data-theme="phosphor"] .hero {
+  background:
+    repeating-linear-gradient(0deg, rgb(141 255 122 / 0.035) 0 1px, transparent 1px 3px),
+    linear-gradient(90deg, rgb(141 255 122 / 0.06) 1px, transparent 1px) 0 0 / 40px 40px,
+    linear-gradient(0deg, rgb(141 255 122 / 0.06) 1px, transparent 1px) 0 0 / 40px 40px,
+    radial-gradient(120% 120% at 50% 30%, #0c2c0c, var(--surface) 75%);
+}
+[data-theme="phosphor"] .identity h1 { font-weight: 400; }
+[data-theme="phosphor"] .identity h1::before { content: "> "; color: var(--faint); }
+[data-theme="phosphor"] .tabs a { color: var(--muted); border-radius: 6px; }
+[data-theme="phosphor"] .tabs a svg { display: none; }
+[data-theme="phosphor"] .tabs a[aria-current="page"] { background: var(--sun); color: #021002; }
+[data-theme="phosphor"] .tabs a[aria-current="page"]::before { display: none; }
+[data-theme="phosphor"] .verdict-mark { width: 12px; height: 22px; border-radius: 0; background: var(--tone) !important; }
+[data-theme="phosphor"] .verdict .verdict-title { color: var(--tone); font-weight: 400; font-size: clamp(22px, 2.8vw, 34px); text-shadow: 0 0 14px color-mix(in srgb, var(--tone) 55%, transparent); }
+[data-theme="phosphor"] .verdict-title::after { content: "_"; }
+[data-theme="phosphor"] .gauges, [data-theme="phosphor"] .gauge, [data-theme="phosphor"] .companion-head { border-style: dashed; border-color: #2d7a28; border-width: 0; }
+[data-theme="phosphor"] .gauges, [data-theme="phosphor"] .companion-head { border-top-width: 1px; }
+[data-theme="phosphor"] .gauge + .gauge { border-left-width: 1px; }
+[data-theme="phosphor"] :is(#hero-value, .period-sum, .gauge .hero-extra .value, .gauge-value) { font-weight: 400; color: var(--sun); letter-spacing: -0.04em; text-shadow: 0 0 18px rgb(141 255 122 / 0.5); }
+[data-theme="phosphor"]:is([data-tone="heat"], [data-tone="fault"]) :is(#hero-value, .gauge-value) { color: var(--tone); text-shadow: 0 0 18px color-mix(in srgb, var(--tone) 50%, transparent); }
+[data-theme="phosphor"] .gauge-power { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); column-gap: 12px; }
+[data-theme="phosphor"] .gauge-power > * { grid-column: 1; }
+[data-theme="phosphor"] .gauge-power .needle { grid-column: 2; grid-row: 1 / 5; align-self: center; width: 100%; height: auto; }
+[data-theme="phosphor"] .needle .mark { stroke: var(--muted); stroke-width: 1; }
+[data-theme="phosphor"] .needle .major { stroke: var(--text); stroke-width: 2; }
+[data-theme="phosphor"] .needle text { fill: var(--muted); font-size: 10px; }
+[data-theme="phosphor"] .needle .hand { stroke: var(--tone); stroke-width: 3; stroke-linecap: round; transition: transform 400ms; }
+[data-theme="phosphor"] .meter { border-color: #2d7a28; border-radius: 0; }
+[data-theme="phosphor"] .meter-fill { border-radius: 0; background: repeating-linear-gradient(90deg, var(--tone) 0 6px, transparent 6px 8px); }
+[data-theme="phosphor"] .section-title { font-weight: 400; }
+[data-theme="phosphor"] .section-title::before { width: 10px; height: 10px; border-radius: 0; }
+[data-theme="phosphor"] .stat { border-top: 1px dotted #2d7a28; }
+[data-theme="phosphor"] .stat .reading { font-weight: 400; }
+[data-theme="phosphor"] :is(.chart-tab, .day-nav button, .day-nav input, .theme-picker select) { border-radius: 4px; border-color: #2d7a28; }
+[data-theme="phosphor"] .chart-tab[aria-pressed="true"] { background: var(--sun); color: #021002; }
+[data-theme="phosphor"] .tile-value { font-weight: 400; }
+@media (max-width: 899px) { [data-theme="phosphor"] .gauge + .gauge-today { border-left-width: 0; } [data-theme="phosphor"] .gauge-power { border-bottom: 1px dashed #2d7a28; } [data-theme="phosphor"] .verdict { flex-wrap: wrap; } }

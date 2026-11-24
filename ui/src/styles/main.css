@@ -8,11 +8,12 @@
   --hairline: #262626;
   --text: #f4f4f4;
   --muted: #a3a3a3;
-  --faint: #737373;
+  --faint: #8a8a8a;
   --sun: #ffc24d;
   --ember: #ff8f4c;
   --mains: #4fd6c8;
   --alert: #ff5f7e;
+  --good: #6fdc8c;
   --radius: 14px;
 }
 
@@ -88,7 +89,7 @@ body {
   box-shadow: 0 0 0 0 transparent;
 }
 
-.pill.live .dot { background: var(--mains); --pulse: var(--mains); }
+.pill.live .dot { background: var(--good); --pulse: var(--good); }
 .pill.live.beat .dot { animation: pulse 2s ease-out 1; }
 .pill.live { color: var(--text); }
 .pill.error .dot { background: var(--alert); animation: none; }
@@ -123,12 +124,6 @@ body {
 }
 
 .card-head h2 { margin: 0; font-size: 13px; font-weight: 600; }
-
-.hero {
-  background: linear-gradient(160deg,
-    color-mix(in srgb, var(--sun) 7%, var(--surface)),
-    var(--surface) 62%);
-}
 
 .hero-caption {
   display: flex;
@@ -173,32 +168,13 @@ body {
 }
 
 @keyframes stamp-flash {
-  0%   { color: var(--sun); }
-  30%  { color: var(--sun); }
+  0%   { color: var(--text); }
   100% { color: var(--faint); }
 }
 
 @keyframes tick-flash {
-  0% {
-    transform: scale(1);
-    background: var(--sun);
-    box-shadow: 0 0 0 0 color-mix(in srgb, var(--sun) 70%, transparent);
-  }
-  30% {
-    transform: scale(1.75);
-    background: var(--sun);
-    box-shadow: 0 0 0 6px color-mix(in srgb, var(--sun) 24%, transparent);
-  }
-  70% {
-    transform: scale(1);
-    background: var(--sun);
-    box-shadow: 0 0 0 16px transparent;
-  }
-  100% {
-    transform: scale(1);
-    background: var(--faint);
-    box-shadow: 0 0 0 0 transparent;
-  }
+  0%   { transform: scale(1.3); background: var(--text); }
+  100% { transform: scale(1); background: var(--faint); }
 }
 
 body.stale .tick { background: var(--alert); animation: none; }
@@ -224,7 +200,7 @@ body.stale .tick { background: var(--alert); animation: none; }
    border, so the fill stays the 8px it was. */
 .meter {
   height: 10px;
-  border: 1px solid color-mix(in srgb, var(--sun) 28%, var(--hairline));
+  border: 1px solid var(--hairline);
   border-radius: 999px;
   background: var(--well);
   overflow: hidden;
@@ -237,8 +213,6 @@ body.stale .tick { background: var(--alert); animation: none; }
   background: var(--sun);
   transition: width 420ms ease, background-color 300ms ease;
 }
-
-.meter-fill.ceiling { background: var(--ember); }
 
 /* Numbers worth reading without hunting through a section. They sit on the
    hero card so the day's total is answerable at a glance. */
@@ -300,10 +274,14 @@ body.stale .hero-extra .value { color: var(--faint); }
   margin: 0 0 10px;
 }
 
-.section-title.solar { color: var(--sun); }
-.section-title.grid { color: var(--mains); }
-.section-title.inverter { color: var(--muted); }
-.section-title.system { color: var(--faint); }
+/* The heading stays in text ink; the tick beside it carries the colour its
+   lines wear on the charts. */
+.section-title { display: flex; align-items: center; gap: 8px; }
+.section-title::before { content: ""; width: 10px; height: 2px; border-radius: 2px; background: var(--faint); }
+.section-title.solar::before { background: var(--sun); }
+.section-title.grid::before { background: var(--mains); }
+.section-title.inverter::before { background: var(--ember); }
+.section-hint { margin-left: auto; font-size: 11px; font-weight: 400; color: var(--faint); }
 
 .stat {
   display: flex;
@@ -342,9 +320,6 @@ body.stale .hero-extra .value { color: var(--faint); }
   font-weight: 400;
 }
 
-/* A peak is a different kind of number from the reading above it: an
-   aggregate over the day rather than a live value. Tinting it says so
-   without needing a word. */
 /* A faulted run mode is the one value on the page that should not read as
    calmly as the healthy numbers beside it. */
 .stat.fault .reading { color: var(--alert); font-weight: 700; }
@@ -355,9 +330,9 @@ body.stale .hero-extra .value { color: var(--faint); }
 .stat.warn .name { color: color-mix(in srgb, var(--sun) 50%, var(--muted)); }
 
 /* Live value and today's peak share one row, reading as "240.0 V / 260.0 V".
-   Gold marks the peak, so the pair needs no label saying which is which. */
+   The peak sits back in muted ink; the card's heading says which is which. */
 .stat .reading .live { color: var(--text); }
-.stat .reading .top { color: var(--sun); }
+.stat .reading .top { color: var(--muted); font-weight: 500; }
 
 .stat .reading .sep {
   color: var(--faint);
@@ -369,13 +344,6 @@ body.stale .hero-extra .value { color: var(--faint); }
   font-weight: 400;
   color: var(--faint);
   margin-left: 3px;
-}
-
-/* The unit belongs to the half it sits in. Left grey, the peak's unit read as
-   though it had come loose from its number. Tinted rather than full gold, so
-   it stays subordinate the way the live half's unit is. */
-.stat .reading .top .unit {
-  color: color-mix(in srgb, var(--sun) 70%, var(--faint));
 }
 
 /* A faulted run mode outranks the usual colours on its own row. */
@@ -391,7 +359,7 @@ body.stale .hero-extra .value { color: var(--faint); }
 .chart-key[hidden], .chart-key .key[hidden] { display: none; }
 .chart-key .key { display: inline-flex; align-items: center; gap: 6px; }
 .chart-key .key::before { content: ""; width: 12px; height: 8px; border-radius: 2px; }
-.chart-key .at-limit::before { background: var(--sun); }
+.chart-key .at-limit::before { background: var(--muted); }
 .chart-key .derating::before { background: var(--ember); }
 #chart, #companion-chart { width: 100%; }
 
@@ -478,13 +446,12 @@ body.stale .hero-extra .value { color: var(--faint); }
   color: var(--text);
   font: inherit;
   font-size: 12px;
-  color-scheme: dark;
 }
 
 /* Viewing an earlier day: the chart is history, while the cards beside it
    are still live. Tinting the card edge keeps that from being confusing. */
 .chart-card.historical {
-  border-color: color-mix(in srgb, var(--sun) 35%, var(--hairline));
+  border-color: var(--faint);
 }
 
 /* Built from the registry, one entry per series. The line key carries the
@@ -528,7 +495,7 @@ body.stale .hero-extra .value { color: var(--faint); }
   padding: 4px 2px 10px;
 }
 
-.footer a { color: color-mix(in srgb, var(--sun) 55%, var(--muted)); text-decoration: none; }
+.footer a { color: var(--muted); text-decoration: none; }
 .footer a:hover { text-decoration: underline; }
 
 /* A reading older than a few intervals is dimmed rather than hidden, so a
@@ -549,45 +516,29 @@ body.stale #updated { color: var(--alert); }
    would just be a strip of content in the middle of a black field, so the
    chart moves alongside the readings and the type grows with the panel. */
 @media (min-width: 1400px) {
-  /* Within a screen, readings take 30% and the charts the rest, on every
-     wide layout. When the chart runs taller than the cards beside it, the
-     extra height goes to the row under the hero, not the hero's own. */
-  .screen {
-    grid-template-columns: minmax(330px, 3fr) minmax(0, 7fr);
+  /* The status spans the top. Under it the charts lead and the readings sit
+     beside them, as detail, each as tall as its rows. */
+  .screen[data-screen="home"] {
+    grid-template-columns: minmax(0, 7fr) minmax(330px, 3fr);
     grid-template-rows: auto 1fr;
     align-items: start;
   }
 
-  .screen > .hero { grid-column: 1; grid-row: 1; }
-
-  /* The reading cards stack down the left under the hero, two abreast when
-     the column has room, each as tall as its rows. */
-  .screen > .sections {
-    grid-column: 1;
-    grid-row: 2;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    align-self: start;
-  }
-
-  /* The chart stands beside the readings rather than sitting as a
-     letterbox under them. */
-  .screen > .chart-card {
+  .screen[data-screen="home"] > .hero { grid-column: 1 / -1; grid-row: 1; }
+  .screen[data-screen="home"] > .chart-card { grid-column: 1; grid-row: 2; }
+  .screen[data-screen="home"] > .sections {
     grid-column: 2;
-    grid-row: 1 / 3;
-    align-self: start;
+    grid-row: 2;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
 @media (min-width: 2000px) {
   .page { gap: 20px; }
-  .screen {
-    gap: 20px;
-    /* The left column now holds two cards across, so its floor rises to
-       keep room for both; its share stays at 30%. */
-    grid-template-columns: minmax(560px, 3fr) minmax(0, 7fr);
-  }
+  .screen { gap: 20px; }
   /* Two cards abreast rather than a single stack down a wide empty column. */
-  .screen > .sections { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  .screen[data-screen="home"] { grid-template-columns: minmax(0, 7fr) minmax(560px, 3fr); }
+  .screen[data-screen="home"] > .sections { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
   body { font-size: 15px; }
   #hero-value, .period-sum { font-size: 78px; }
   .stat, .hero-caption, .muted, .pill, .hero-extra .label { font-size: 14px; }
@@ -602,10 +553,11 @@ body.stale #updated { color: var(--alert); }
    rather than staying a postage stamp in the middle. */
 @media (min-width: 2800px) {
   .page { gap: 24px; }
-  .screen { gap: 24px; grid-template-columns: minmax(820px, 3fr) minmax(0, 7fr); }
+  .screen { gap: 24px; }
+  .screen[data-screen="home"] { grid-template-columns: minmax(0, 7fr) minmax(820px, 3fr); }
   /* Two abreast, which squares four cards into a 2x2 block with no hole.
      Three across would leave the fourth stranded on a row of its own. */
-  .screen > .sections { grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); }
+  .screen[data-screen="home"] > .sections { grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); }
   body { font-size: 17px; }
   #hero-value, .period-sum { font-size: 104px; }
   .stat, .hero-caption, .muted, .pill, .hero-extra .label { font-size: 16px; }
@@ -688,7 +640,7 @@ body.stale #updated { color: var(--alert); }
   .tabs a { flex-direction: column; gap: 2px; font-size: 11px; border-radius: 0; flex: 1; position: relative; }
   .tabs a[aria-current="page"] { background: none; }
   .tabs a[aria-current="page"]::before {
-    content: ""; position: absolute; top: 0; left: 30%; right: 30%; height: 2px; background: var(--sun);
+    content: ""; position: absolute; top: 0; left: 30%; right: 30%; height: 2px; background: var(--text);
   }
   .page { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
 }
@@ -764,16 +716,110 @@ body.stale #updated { color: var(--alert); }
   background: linear-gradient(var(--hairline), var(--hairline)) center / 60% 0.7em no-repeat;
 }
 
+/* The status: one sentence on how the plant is doing, then the three figures
+   that back it up. The mark and its colour always come with words. */
+.screen[data-screen="home"] .hero { display: grid; gap: 18px; }
+.verdict { display: flex; align-items: center; gap: 12px; }
+.verdict-words { min-width: 0; }
+.verdict-title { margin: 0; font-size: clamp(20px, 2.4vw, 26px); font-weight: 600; letter-spacing: -0.01em; line-height: 1.2; }
+.verdict-detail { margin: 3px 0 0; font-size: 13px; color: var(--muted); }
+.verdict-detail:empty { display: none; }
+.verdict .updated-group { margin-left: auto; flex: none; font-size: 12px; }
+.verdict-mark { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--faint); }
+.verdict[data-tone="good"] .verdict-mark { background: var(--good); }
+.verdict[data-tone="limit"] .verdict-mark { background: var(--text); }
+.verdict[data-tone="heat"] .verdict-mark { background: var(--ember); }
+.verdict[data-tone="watch"] .verdict-mark { background: var(--sun); }
+.verdict[data-tone="fault"] .verdict-mark { background: var(--alert); }
+.verdict[data-tone="fault"] .verdict-title { color: var(--alert); }
+
+.gauges {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr);
+  padding-top: 18px;
+  border-top: 1px solid var(--hairline);
+}
+.gauge { min-width: 0; padding: 0 24px; border-left: 1px solid var(--hairline); }
+.gauge:first-child { padding-left: 0; border-left: 0; }
+.gauge:last-child { padding-right: 0; }
+.gauge[hidden] { display: none; }
+.gauge-label { margin: 0; font-size: 12px; color: var(--muted); }
+.gauge .hero-number { margin: 6px 0 12px; }
+.gauge .hero-extras { display: block; margin: 0; padding: 0; border: 0; }
+.gauge .hero-extra { display: grid; gap: 6px; }
+.gauge .hero-extra .value, .gauge-value {
+  margin: 0;
+  font-size: clamp(32px, 4vw, 44px);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.gauge-value { margin-top: 6px; }
+.gauge .hero-extra .value .unit, .gauge-value .unit {
+  margin-left: 6px;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--muted);
+}
+.gauge .hero-line:first-of-type { margin-top: 12px; }
+.alert-heat { color: var(--ember); }
+body.stale .gauge-value { color: var(--faint); }
+
+@media (max-width: 899px) {
+  .gauges { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 16px; }
+  .gauge-power { grid-column: 1 / -1; padding: 0 0 16px; border-bottom: 1px solid var(--hairline); }
+  .gauge-today { padding-left: 0; border-left: 0; }
+  .verdict { align-items: flex-start; }
+  .verdict-mark { margin-top: 7px; }
+}
+
+/* The facts about the device stay out of the way until they are asked for. */
+.device-card { align-self: start; }
+.device-card summary { min-height: 20px; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; }
+.device-card[open] summary { margin-bottom: 10px; }
+
+/* The theme picker, quiet beside the status. */
+.theme-picker { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+.theme-picker select { height: 28px; padding: 0 6px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--well); color: var(--text); font: inherit; }
+
+/* What the crosshair is over, read from both charts at once. */
+.chart-tip {
+  position: absolute;
+  top: 8px;
+  left: 0;
+  z-index: 5;
+  display: grid;
+  gap: 4px;
+  min-width: 150px;
+  padding: 8px 10px;
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  background: var(--tip, #161616);
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.45);
+  font-size: 12px;
+  color: var(--text);
+  pointer-events: none;
+}
+.chart-tip[hidden] { display: none; }
+.chart-tip .tip-time { color: var(--muted); }
+.chart-tip .tip-row { display: flex; align-items: center; gap: 6px; }
+.chart-tip .tip-key { flex: none; width: 10px; height: 2px; border-radius: 2px; }
+.chart-tip .tip-value { margin-left: auto; padding-left: 14px; font-weight: 600; white-space: nowrap; }
+.chart-tip .tip-note { color: var(--muted); }
+.chart-tip .tip-note.heat { color: var(--ember); }
+
 /* A pull at the top of the page must not bounce into the browser's own
    refresh: the live stream keeps the page current. */
 body { overscroll-behavior-y: none; }
 
 /* On a touch screen every control is at least 44 px square. */
 @media (pointer: coarse) {
-  .day-nav button, .day-nav input[type="date"], .legend .item, .chart-tab {
+  .day-nav button, .day-nav input[type="date"], .legend .item, .chart-tab, .theme-picker select {
     min-height: 44px;
     min-width: 44px;
   }
+  .device-card summary { display: flex; align-items: center; min-height: 44px; }
   .footer a { display: inline-flex; align-items: center; min-height: 44px; }
 }
 

@@ -1,12 +1,20 @@
 import uPlot from "uplot";
+import { theme } from "../themes";
 
-export const SUN = "#ffc24d";
-export const MAINS = "#4fd6c8";
-export const EMBER = "#ff8f4c";
-export const LILAC = "#b8a6ff";
-export const FAINT = "#737373";
-export const HAIRLINE = "#262626";
-export const WELL = "#060606";
+const { ink } = theme;
+
+export const SUN = ink.solar;
+export const MAINS = ink.grid;
+export const EMBER = ink.inverter;
+export const HEAT = ink.heat;
+export const LILAC = ink.spare;
+export const TEXT = ink.text;
+export const MUTED = ink.muted;
+export const FAINT = ink.faint;
+export const HAIRLINE = ink.hairline;
+export const GRID = ink.gridline;
+export const SURFACE = ink.surface;
+export const CROSSES = ink.crosses;
 
 // A series wears its section's colour, so solar reads yellow and grid teal on
 // every chart. A second series from the same section on one chart takes a
@@ -35,5 +43,10 @@ export function axisTextSize(widthCssPixels: number): number {
 }
 
 export function axisFont(size: number): string {
-  return size + "px Inter, system-ui, sans-serif";
+  return `${ink.fontStyle} ${size}px ${ink.fontFamily}`.trim();
+}
+
+/** The same lettering, a step bolder, for a label that must stand out. */
+export function labelFont(size: number): string {
+  return `${ink.fontStyle || "600"} ${size}px ${ink.fontFamily}`;
 }

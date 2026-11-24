@@ -1,7 +1,7 @@
 import uPlot from "uplot";
 import { formatNumber } from "../format";
 import { axisSize } from "./day-chart";
-import { axisFont, axisTextSize, colour, FAINT, HAIRLINE, pixelRatio, SUN, WELL } from "./theme";
+import { axisFont, axisTextSize, colour, FAINT, HAIRLINE, pixelRatio, SUN } from "./theme";
 
 const ALERT = "#ff5f7e";
 
@@ -37,7 +37,6 @@ export class BarChart {
   private height = 0;
 
   constructor(private readonly element: HTMLElement, private readonly options: BarOptions) {
-    element.style.background = WELL;
   }
 
   /** Draws the bars, unless they are exactly what is already drawn: a

@@ -1,7 +1,7 @@
 import type { Metric, Now } from "../api/bindings";
 import type { Context } from "../app/context";
 import { SECTION_TITLES } from "../charts/panes";
-import { formatDuration, formatNumber } from "../format";
+import { formatDuration, formatNumber, unitLabel } from "../format";
 
 const SECTION_ORDER = ["solar", "grid", "inverter"];
 
@@ -15,7 +15,7 @@ const SYSTEM_ROWS: Array<[string, string]> = [
 ];
 
 /** One row of a card: the live value and, for a metric with a peak, today's
- * peak in gold after it, reading as "240.0 V / 260.0 V". */
+ * peak after it, reading as "240.0 V / 260.0 V". */
 function statRow(metric: Metric): HTMLElement {
   const row = document.createElement("div");
   row.className = "stat";
@@ -29,7 +29,7 @@ function statRow(metric: Metric): HTMLElement {
     note.textContent = metric.note;
     label.appendChild(note);
   }
-  const unit = metric.unit ? '<span class="unit">' + metric.unit + "</span>" : "";
+  const unit = metric.unit ? '<span class="unit">' + unitLabel(metric.unit) + "</span>" : "";
   const reading = document.createElement("span");
   reading.className = "reading";
   reading.innerHTML =
@@ -47,12 +47,18 @@ export function derateReading(count: number | null, seconds: number | null): str
   return `${count} ${count === 1 ? "time" : "times"}, ${formatDuration(seconds ?? 0)}`;
 }
 
-function sectionCard(name: string, title: string): HTMLElement {
+function sectionCard(name: string, title: string, hasPeaks: boolean): HTMLElement {
   const card = document.createElement("section");
   card.className = "card";
   const heading = document.createElement("h2");
   heading.className = "section-title " + name;
   heading.textContent = title;
+  if (hasPeaks) {
+    const hint = document.createElement("span");
+    hint.className = "section-hint";
+    hint.textContent = "Now / peak today";
+    heading.appendChild(hint);
+  }
   card.appendChild(heading);
   return card;
 }
@@ -67,13 +73,24 @@ function paintSerialToggle(button: HTMLButtonElement, shown: boolean): void {
   button.title = `${action} inverter number`;
 }
 
+/** The facts about the device, folded away until they are asked for. */
+function deviceCard(): HTMLElement {
+  const card = document.createElement("details");
+  card.className = "card device-card";
+  card.id = "system-card";
+  const summary = document.createElement("summary");
+  summary.textContent = "Device details";
+  card.appendChild(summary);
+  return card;
+}
+
 export interface Cards {
   readonly element: HTMLElement;
   paint(now: Now | null): void;
 }
 
 /** The Solar, Grid and Inverter cards, a row per metric not already on the
- * hero card, and the System card. Live values, today's peaks in gold, and
+ * hero card, and the folded device facts. Live values, today's peaks, and
  * the run mode row tinted with the inverter's own verdict. */
 export function createCards(context: Context): Cards {
   const element = document.createElement("section");
@@ -89,26 +106,16 @@ export function createCards(context: Context): Cards {
   }
   const rows = new Map<string, HTMLElement>();
   const names = [...bySection.keys()].sort((first, second) => (SECTION_ORDER.indexOf(first) + 1 || 99) - (SECTION_ORDER.indexOf(second) + 1 || 99));
-  // Today's heat derating sits with the inverter's own readings. The
-  // inverter never reports it; the server reads it from them.
-  const derateRow = document.createElement("div");
-  derateRow.className = "stat";
-  derateRow.dataset.derived = "heat_derating";
-  derateRow.hidden = true;
-  derateRow.innerHTML = '<span class="name">Heat derating today</span><span class="reading"><span class="live">–</span></span>';
-  const derateValue = derateRow.querySelector(".live") as HTMLElement;
   for (const name of names) {
-    const card = sectionCard(name, SECTION_TITLES[name] ?? name);
+    const card = sectionCard(name, SECTION_TITLES[name] ?? name, bySection.get(name)!.some((metric) => metric.peak));
     for (const metric of bySection.get(name)!) {
       const row = statRow(metric);
       rows.set(metric.key, row);
       card.appendChild(row);
     }
-    if (name === "inverter") card.appendChild(derateRow);
     element.appendChild(card);
   }
-  const systemCard = sectionCard("system", "System");
-  systemCard.id = "system-card";
+  const systemCard = deviceCard();
   const systemValues = new Map<string, HTMLElement>();
   let showInverterNumber = false;
   try {
@@ -175,9 +182,6 @@ export function createCards(context: Context): Cards {
         // the previous day's figure.
         if (top && metric.key in now.peaks) (top.firstChild as Text).nodeValue = formatNumber(now.peaks[metric.key], metric.decimals);
       }
-      const derating = derateReading(now.today.derate_count, now.today.derate_seconds);
-      derateRow.hidden = derating === null;
-      derateValue.textContent = derating ?? "–";
       const runMode = rows.get(context.runMode.key);
       const severity = reading.health.severity;
       runMode?.classList.toggle("fault", severity === "fault");

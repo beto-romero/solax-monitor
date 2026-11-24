@@ -1,0 +1,161 @@
+/* Command. Structure in amber, figures in green, red for heat and faults. */
+:root[data-theme="command"] {
+  --night: #000;
+  --surface: #050403;
+  --well: #000;
+  --hairline: #6b3d10;
+  --text: #ffd9a8;
+  --muted: #e08a2e;
+  --faint: #c47a2c;
+  --sun: #7df59a;
+  --mains: #5fc8ff;
+  --ember: #ff5a48;
+  --alert: #ff5a48;
+  --good: #7df59a;
+  --radius: 4px;
+  /* What the panel is drawn in, and what its figures glow. */
+  --ink: #ff9a2e;
+  --glow: #7df59a;
+  --unlit: #10180f;
+  --condensed: "Helvetica Neue", "Arial Narrow", "Liberation Sans Narrow", Arial, sans-serif;
+}
+:root[data-theme="command"][data-tone="limit"] { --glow: #ffd166; --unlit: #1b1508; }
+:root[data-theme="command"][data-tone="watch"] { --glow: #ffd166; --unlit: #1b1508; }
+:root[data-theme="command"][data-tone="idle"] { --ink: #b8732a; --glow: #5fa873; }
+:root[data-theme="command"]:is([data-tone="heat"], [data-tone="fault"]) {
+  --ink: #ff4334;
+  --glow: #ff6a4d;
+  --unlit: #200906;
+  --hairline: #7a1c12;
+}
+
+[data-theme="command"] body { font-family: var(--condensed); font-stretch: condensed; font-weight: 700; letter-spacing: 0.01em; }
+[data-theme="command"] .card { border: 2px solid var(--ink); background: var(--surface); transition: border-color 300ms; }
+
+/* Top bar: a name plate, and tabs that fill in when chosen. */
+[data-theme="command"] .identity h1 { font-size: 34px; font-weight: 900; line-height: 0.9; text-transform: uppercase; color: var(--ink); transform: scaleY(1.15); transform-origin: left bottom; }
+[data-theme="command"] .identity p { margin-top: 6px; color: var(--muted); }
+[data-theme="command"] .tabs { gap: 0; }
+[data-theme="command"] .tabs a { border-radius: 0; text-transform: uppercase; color: var(--ink); font-weight: 700; }
+[data-theme="command"] .tabs a[aria-current="page"] { background: var(--ink); color: #000; }
+[data-theme="command"] .tabs a[aria-current="page"]::before { display: none; }
+[data-theme="command"] .pill { border: 2px solid var(--ink); border-radius: 4px; text-transform: uppercase; }
+[data-theme="command"] .dot { border-radius: 0; }
+@media (min-width: 900px) {
+  [data-theme="command"] .tabs { border: 2px solid var(--ink); border-radius: 4px; overflow: hidden; }
+  [data-theme="command"] .tabs a + a { border-left: 2px solid var(--ink); }
+}
+@media (max-width: 899px) {
+  [data-theme="command"] .tabs { border-top: 2px solid var(--ink); padding-inline: 0; }
+}
+
+/* The status plate, ruled along its top edge like an instrument. */
+[data-theme="command"] .hero { position: relative; padding-top: 30px; }
+[data-theme="command"] .hero::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 12px;
+  background:
+    repeating-linear-gradient(90deg, var(--ink) 0 2px, transparent 2px 60px),
+    repeating-linear-gradient(90deg, color-mix(in srgb, var(--ink) 65%, transparent) 0 1px, transparent 1px 12px) 0 0 / 100% 6px no-repeat;
+}
+[data-theme="command"] .verdict-mark { display: none; }
+[data-theme="command"] .verdict { align-items: center; gap: 18px; }
+[data-theme="command"] .verdict-words { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; }
+[data-theme="command"] .verdict-title {
+  padding: 8px 14px 6px;
+  border: 3px solid var(--glow);
+  border-radius: 6px;
+  font-size: clamp(26px, 3.4vw, 46px);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  color: var(--glow);
+}
+[data-theme="command"] .verdict-detail { margin: 0; font-size: 15px; color: var(--text); max-width: 30ch; }
+[data-theme="command"] .tick { border-radius: 0; }
+
+/* Figures. */
+[data-theme="command"] .gauges { border-top: 2px solid var(--ink); }
+[data-theme="command"] .gauge { border-color: var(--ink); border-left-width: 2px; }
+[data-theme="command"] .gauge:first-child { border-left: 0; }
+[data-theme="command"] .gauge-label,
+[data-theme="command"] .hero-extra .label { font-size: 13px; text-transform: uppercase; color: var(--ink); }
+[data-theme="command"] .gauge .hero-extra .value,
+[data-theme="command"] .gauge-value { font-size: clamp(40px, 5vw, 64px); font-weight: 900; color: var(--glow); }
+[data-theme="command"] .gauge-power .meter { display: none; }
+[data-theme="command"] .gauge-power .hero-number { align-items: flex-end; flex-wrap: wrap; }
+/* The digits are drawn; the number itself stays for assistive technology. */
+[data-theme="command"] #hero-value { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+[data-theme="command"] .hero-unit { font-size: 22px; font-weight: 900; color: var(--ink); }
+[data-theme="command"] .readout { width: min(100%, 270px); height: auto; overflow: visible; transform: skewX(-8deg); transform-origin: bottom; }
+[data-theme="command"] .readout polygon { fill: var(--unlit); }
+[data-theme="command"] .readout .lit { fill: var(--glow); }
+[data-theme="command"] .bank { display: grid; grid-template-columns: repeat(20, 1fr); gap: 3px; transform: skewX(-20deg); margin: 4px 8px 0; }
+[data-theme="command"] .bank i { height: 12px; background: var(--unlit); outline: 1px solid color-mix(in srgb, var(--glow) 22%, transparent); outline-offset: -1px; }
+[data-theme="command"] .bank .lit { background: var(--glow); }
+[data-theme="command"] .gauge-heat { position: relative; padding-right: 96px; }
+[data-theme="command"] .column { position: absolute; top: 0; right: 0; bottom: 0; width: 76px; display: grid; gap: 2px; padding-right: 30px; }
+[data-theme="command"] .column i { position: relative; background: var(--unlit); }
+[data-theme="command"] .column .lit { background: var(--glow); }
+[data-theme="command"] .column i::after { content: attr(data-mark); position: absolute; left: calc(100% + 6px); top: 50%; translate: 0 -50%; font-style: normal; font-size: 11px; color: var(--faint); }
+[data-theme="command"] body.stale .readout .lit,
+[data-theme="command"] body.stale .bank .lit,
+[data-theme="command"] body.stale .column .lit { fill: var(--faint); background: var(--faint); }
+
+/* Detail cards wear their names as filled labels. */
+[data-theme="command"] .section-title { margin: calc(-1 * clamp(16px, 2.4vw, 22px)); margin-bottom: 8px; padding: 7px 14px 6px; background: var(--ink); color: #000; font-size: 15px; font-weight: 900; text-transform: uppercase; }
+[data-theme="command"] .section-title::before { width: 14px; height: 10px; border-radius: 0; box-shadow: 0 0 0 2px #000; }
+[data-theme="command"] .section-hint { color: #000; font-weight: 700; }
+[data-theme="command"] .stat { border-top: 1px dotted var(--hairline); }
+[data-theme="command"] .stat .reading .live { color: var(--glow); }
+[data-theme="command"] .stat .note { font-weight: 400; }
+[data-theme="command"] .card-head h2, [data-theme="command"] .device-card summary { color: var(--ink); font-weight: 900; text-transform: uppercase; }
+[data-theme="command"] .card-head h2 { font-size: 20px; line-height: 1; }
+[data-theme="command"] .companion-head { border-top: 2px solid var(--ink); }
+[data-theme="command"] :is(.chart-tab, .day-nav button, .day-nav input, .theme-picker select) { border: 2px solid var(--hairline); border-radius: 4px; color: var(--ink); font-weight: 700; font-stretch: condensed; }
+[data-theme="command"] .chart-tab[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: #000; }
+[data-theme="command"] .legend .key { width: 16px; height: 6px; border-radius: 0; }
+[data-theme="command"] .chart-tip { border: 2px solid var(--ink); border-radius: 4px; background: #000; }
+[data-theme="command"] .period-sum, [data-theme="command"] .tile-value { color: var(--glow); font-weight: 900; }
+[data-theme="command"] .tile-label { color: var(--ink); text-transform: uppercase; }
+
+[data-theme="command"] .wave { padding: 10px 14px 0; overflow: hidden; }
+[data-theme="command"] .wave-title { display: flex; justify-content: space-between; margin: 0; font-size: 13px; text-transform: uppercase; color: var(--ink); }
+[data-theme="command"] .wave-title span { color: var(--mains); text-transform: none; }
+[data-theme="command"] .wave svg { display: block; width: 100%; height: 104px; }
+[data-theme="command"] .wave path { fill: none; stroke: var(--mains); stroke-width: 1; vector-effect: non-scaling-stroke; }
+
+/* Trouble. Hazard bands close around the status, and its plate fills in. */
+[data-theme="command"]:is([data-tone="heat"], [data-tone="fault"]) .hero { padding-block: 44px; }
+[data-theme="command"]:is([data-tone="heat"], [data-tone="fault"]) .hero::before,
+[data-theme="command"]:is([data-tone="heat"], [data-tone="fault"]) .hero::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 24px;
+  background: repeating-linear-gradient(-55deg, var(--ink) 0 22px, #000 22px 44px);
+}
+[data-theme="command"]:is([data-tone="heat"], [data-tone="fault"]) .hero::after { inset: auto 0 0; }
+[data-theme="command"]:is([data-tone="heat"], [data-tone="fault"]) .verdict-title { border-color: var(--ink); background: var(--ink); color: #000; font-size: clamp(32px, 6vw, 88px); }
+[data-theme="command"][data-tone="watch"] .verdict-title,
+[data-theme="command"][data-tone="limit"] .verdict-title { background: var(--glow); color: #000; }
+
+[data-theme="command"] .theme-picker { color: var(--muted); }
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-theme="command"] .wave .drift { animation: command-drift 9s linear infinite; }
+  [data-theme="command"][data-tone="fault"] .hero::before,
+  [data-theme="command"][data-tone="fault"] .hero::after { animation: command-hazard 2.4s linear infinite; }
+}
+@keyframes command-drift { to { transform: translateX(-200px); } }
+@keyframes command-hazard { 50% { opacity: 0.55; } }
+
+@media (max-width: 899px) {
+  [data-theme="command"] .verdict { align-items: flex-start; flex-wrap: wrap; }
+  [data-theme="command"] .gauge-power { border-bottom: 2px solid var(--ink); }
+  [data-theme="command"] .gauge-heat { padding-right: 52px; }
+  [data-theme="command"] .column { width: 44px; padding-right: 26px; }
+}

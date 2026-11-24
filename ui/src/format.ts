@@ -6,6 +6,11 @@ export function formatNumber(value: number | string | null | undefined, decimals
   return value.toLocaleString(locale, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
 }
 
+/** A metric's unit as it reads on screen; the registry stores degrees as "C". */
+export function unitLabel(unit: string): string {
+  return unit === "C" ? "\u00b0C" : unit;
+}
+
 const SIZE_UNITS = ["B", "KB", "MB", "GB", "TB"];
 
 /** A size on disk in the largest unit it fills, counting in 1,024s as file

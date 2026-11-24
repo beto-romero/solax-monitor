@@ -1,0 +1,52 @@
+/* Spectrum. White tiles on grey, and fields of colour for what matters. */
+:root[data-theme="spectrum"] {
+  --night: #ececef; --surface: #ffffff; --well: #f4f4f6; --hairline: #dcdce2;
+  --text: #141416; --muted: #55555c; --faint: #66666e;
+  --sun: #c2185b; --mains: #1f5fd0; --ember: #b54708; --alert: #d11a2a; --good: #1a8a4a;
+  --caution: #b54708; --radius: 22px; --tip: #ffffff;
+  --field: radial-gradient(90% 120% at 0 0, #ffd9a0, transparent 60%), radial-gradient(90% 120% at 100% 0, #ff9fd0, transparent 60%), radial-gradient(120% 120% at 60% 110%, #a5b6ff, transparent 65%), #f3c4e6;
+}
+:root[data-theme="spectrum"][data-tone="idle"] { --field: linear-gradient(120deg, #d5dbee, #e6e3ef); }
+:root[data-theme="spectrum"]:is([data-tone="limit"], [data-tone="watch"]) { --field: radial-gradient(90% 120% at 0 0, #fff0a0, transparent 60%), radial-gradient(90% 120% at 100% 100%, #ffb98a, transparent 60%), #ffd58f; }
+:root[data-theme="spectrum"]:is([data-tone="heat"], [data-tone="fault"]) { --field: radial-gradient(90% 120% at 0 0, #ffb36b, transparent 55%), radial-gradient(90% 120% at 100% 100%, #ff8aa0, transparent 60%), #ff9f85; }
+[data-theme="spectrum"] body { font-family: "Avenir Next", Avenir, "Segoe UI", sans-serif; }
+[data-theme="spectrum"] .card { border: 0; box-shadow: 0 1px 2px rgb(20 20 22 / 0.05), 0 10px 30px rgb(20 20 22 / 0.05); }
+[data-theme="spectrum"] .chart-card.historical { outline: 2px solid var(--faint); }
+[data-theme="spectrum"] .identity h1 { font-weight: 600; }
+[data-theme="spectrum"] .tabs a[aria-current="page"] { background: #141416; color: #fff; }
+[data-theme="spectrum"] .pill { border: 0; }
+[data-theme="spectrum"] .hero { padding: 10px; }
+[data-theme="spectrum"] .summary-card { padding: 22px; }
+[data-theme="spectrum"] .verdict { padding: 22px; border-radius: 16px; background: var(--field); color: #1c0f1a; align-items: flex-end; min-height: 120px; }
+[data-theme="spectrum"] .verdict-mark { display: none; }
+[data-theme="spectrum"] .verdict-title { font-size: clamp(28px, 3.6vw, 46px); font-weight: 500; letter-spacing: -0.03em; }
+[data-theme="spectrum"] .verdict[data-tone] .verdict-title, [data-theme="spectrum"] .verdict-detail, [data-theme="spectrum"] .verdict #updated { color: #1c0f1a; }
+[data-theme="spectrum"] .verdict .tick { background: #1c0f1a; animation: none; }
+[data-theme="spectrum"] .verdict #updated { animation: none !important; }
+[data-theme="spectrum"] .gauges { border: 0; padding: 4px 14px 12px; }
+[data-theme="spectrum"] :is(#hero-value, .period-sum) { font-weight: 500; letter-spacing: -0.045em; }
+[data-theme="spectrum"] :is(.gauge .hero-extra .value, .gauge-value) { font-weight: 500; }
+[data-theme="spectrum"] .meter { height: 14px; border: 0; background: #e6e6ea; }
+[data-theme="spectrum"] .meter-fill { background: linear-gradient(90deg, #ff9a62, #f0479a 60%, #6d5cf0); }
+[data-theme="spectrum"]:is([data-tone="heat"], [data-tone="fault"]) .meter-fill { background: var(--tone); }
+[data-theme="spectrum"] .section-title::before { width: 8px; height: 8px; border-radius: 50%; }
+[data-theme="spectrum"] .stat .reading .live { font-weight: 600; }
+[data-theme="spectrum"] :is(.chart-tab, .day-nav button, .day-nav input, .theme-picker select) { border: 0; border-radius: 999px; }
+[data-theme="spectrum"] .theme-picker select { background: #fff; }
+[data-theme="spectrum"] .chart-tab[aria-pressed="true"] { background: #141416; color: #fff; }
+[data-theme="spectrum"] .chart-tip { box-shadow: 0 8px 24px rgb(20 20 22 / 0.14); }
+[data-theme="spectrum"] .tile-value { font-weight: 500; }
+[data-theme="spectrum"] .dots-title { display: flex; justify-content: space-between; gap: 10px; margin: 0 0 12px; font-size: 13px; font-weight: 600; }
+[data-theme="spectrum"] .dots-title span { font-weight: 400; font-size: 12px; color: var(--faint); }
+[data-theme="spectrum"] .dots svg { display: block; width: 100%; height: auto; }
+[data-theme="spectrum"] .dots circle { fill: #e4e4e9; }
+[data-theme="spectrum"] .dots .lit { fill: var(--sun); }
+[data-theme="spectrum"] .dots text { fill: var(--faint); font-size: 10px; }
+@media (max-width: 899px) { [data-theme="spectrum"] .tabs { background: #fff; } [data-theme="spectrum"] .tabs a[aria-current="page"] { background: none; color: var(--text); } [data-theme="spectrum"] .verdict { flex-wrap: wrap; } }
+
+/* Trouble must not look like just another pretty field. */
+:root[data-theme="spectrum"][data-tone="heat"] { --field: linear-gradient(100deg, #a83200, #c2410c); }
+:root[data-theme="spectrum"][data-tone="fault"] { --field: linear-gradient(100deg, #a30f1e, #d11a2a); }
+[data-theme="spectrum"]:is([data-tone="heat"], [data-tone="fault"]) .verdict :is(.verdict-title, .verdict-detail, #updated) { color: #fff; }
+[data-theme="spectrum"]:is([data-tone="heat"], [data-tone="fault"]) .verdict .tick { background: #fff; }
+[data-theme="spectrum"]:is([data-tone="heat"], [data-tone="fault"]) .verdict .verdict-mark { display: block; width: 14px; height: 14px; background: #fff; align-self: center; }

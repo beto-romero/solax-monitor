@@ -1,0 +1,66 @@
+/* Bridge. Black deck, rounded blocks of flat colour, condensed lettering. */
+:root[data-theme="bridge"] {
+  --night: #000; --surface: #0b0810; --well: #17111f; --hairline: #4a3f5c;
+  --text: #fbeedd; --muted: #c9b7d8; --faint: #a697b8;
+  --sun: #ffd27a; --mains: #7fd8c0; --ember: #ff9a76; --alert: #ff6b6b; --good: #7fd8c0;
+  --caution: #ffd27a; --sky: #a9b8ff; --rose: #f0a6c8; --radius: 26px; --tip: #1c1526;
+}
+[data-theme="bridge"] body { font-family: "Avenir Next Condensed", "Arial Narrow", "Liberation Sans Narrow", sans-serif; font-weight: 500; letter-spacing: 0.02em; font-size: 17px; }
+[data-theme="bridge"] .card { position: relative; border: 0; padding-left: 44px; background: var(--surface); overflow: hidden; }
+[data-theme="bridge"] .card::after {
+  content: ""; position: absolute; inset: 0 auto 0 0; width: 22px;
+  background: linear-gradient(var(--rail, var(--sky)) 0 46%, #000 46% calc(46% + 5px), var(--rail-2, var(--rose)) calc(46% + 5px) 78%, #000 78% calc(78% + 5px), var(--rail-3, var(--sun)) calc(78% + 5px));
+}
+[data-theme="bridge"] .hero { --rail: var(--tone); }
+[data-theme="bridge"] .chart-card { --rail: var(--rose); --rail-2: var(--sky); --rail-3: var(--mains); overflow: visible; }
+[data-theme="bridge"] .chart-card::after { border-radius: 26px 0 0 26px; }
+[data-theme="bridge"] .chart-card.historical { box-shadow: inset 0 0 0 2px var(--faint); }
+[data-theme="bridge"] .identity h1 { padding: 6px 26px 6px 18px; border-radius: 0 22px 22px 0; background: var(--sky); color: #000; font-size: 28px; line-height: 1; }
+[data-theme="bridge"] .identity p { font-size: 14px; }
+[data-theme="bridge"] .tabs a { font-size: 18px; color: #000; background: var(--rose); font-weight: 600; }
+[data-theme="bridge"] .tabs a:nth-child(2) { background: var(--sky); }
+[data-theme="bridge"] .tabs a:nth-child(3) { background: var(--ember); }
+[data-theme="bridge"] .tabs a svg { display: none; }
+[data-theme="bridge"] .tabs a[aria-current="page"] { background: var(--text); color: #000; }
+[data-theme="bridge"] .tabs a[aria-current="page"]::before { display: none; }
+[data-theme="bridge"] .pill { border: 0; background: var(--well); font-size: 15px; }
+[data-theme="bridge"] .verdict { padding: 14px 22px; border-radius: 30px; background: var(--tone); }
+[data-theme="bridge"] .verdict-mark { display: none; }
+[data-theme="bridge"] .verdict-title { font-size: clamp(26px, 3vw, 38px); font-weight: 600; line-height: 1; }
+[data-theme="bridge"] .verdict[data-tone] .verdict-title, [data-theme="bridge"] .verdict .verdict-detail, [data-theme="bridge"] .verdict #updated { color: #000; }
+[data-theme="bridge"] .verdict .verdict-detail { font-size: 16px; }
+[data-theme="bridge"] .verdict .tick { background: #000; animation: none; }
+[data-theme="bridge"] .verdict #updated { animation: none !important; font-size: 15px; }
+[data-theme="bridge"] .gauges { border: 0; padding-top: 4px; }
+[data-theme="bridge"] .gauge { border-color: transparent; }
+[data-theme="bridge"] :is(.gauge-label, .hero-extra .label, .stat, .muted, .hero-line) { font-size: 16px; }
+[data-theme="bridge"] .gauge-label, [data-theme="bridge"] .hero-extra .label { color: var(--sky); }
+[data-theme="bridge"] #hero-value, [data-theme="bridge"] .period-sum { font-size: clamp(64px, 9vw, 104px); font-weight: 500; color: var(--sun); letter-spacing: 0; }
+[data-theme="bridge"] .gauge .hero-extra .value { color: var(--mains); font-weight: 500; font-size: 60px; }
+[data-theme="bridge"] .gauge-value { color: var(--ember); font-weight: 500; font-size: 60px; }
+[data-theme="bridge"] .meter { display: none; }
+[data-theme="bridge"] .lamps { display: grid; grid-template-columns: repeat(16, 1fr); gap: 5px; }
+[data-theme="bridge"] .lamps i { height: 26px; background: var(--well); }
+[data-theme="bridge"] .lamps i:first-child { border-radius: 13px 0 0 13px; }
+[data-theme="bridge"] .lamps i:last-child { border-radius: 0 13px 13px 0; }
+[data-theme="bridge"] .lamps .lit { background: var(--sun); }
+[data-theme="bridge"] :is([data-tone="heat"], [data-tone="fault"]) .lamps .lit { background: var(--tone); }
+[data-theme="bridge"] .section-title { font-size: 22px; font-weight: 500; }
+[data-theme="bridge"] .section-title::before { width: 26px; height: 14px; border-radius: 7px; }
+[data-theme="bridge"] .section-hint { font-size: 14px; }
+[data-theme="bridge"] .sections .card:nth-child(1) { --rail: var(--sun); }
+[data-theme="bridge"] .sections .card:nth-child(2) { --rail: var(--mains); }
+[data-theme="bridge"] .sections .card:nth-child(3) { --rail: var(--ember); }
+[data-theme="bridge"] .card-head h2 { font-size: 24px; font-weight: 500; }
+[data-theme="bridge"] :is(.chart-tab, .day-nav button, .day-nav input, .theme-picker select) { border: 0; border-radius: 14px; font-size: 15px; background: var(--well); color: var(--text); }
+[data-theme="bridge"] .chart-tab[aria-pressed="true"] { background: var(--sky); color: #000; }
+[data-theme="bridge"] :is(.legend, .footer, .theme-picker, .chart-tip) { font-size: 15px; }
+[data-theme="bridge"] .tile { padding-left: 40px; }
+[data-theme="bridge"] .tile-value { font-size: 34px; font-weight: 500; }
+[data-theme="bridge"] .tile-label { font-size: 15px; }
+@media (max-width: 899px) {
+  [data-theme="bridge"] .card { padding-left: 34px; }
+  [data-theme="bridge"] .card::after { width: 14px; }
+  [data-theme="bridge"] .verdict { flex-wrap: wrap; }
+  [data-theme="bridge"] .tabs { padding: 0 0 env(safe-area-inset-bottom); }
+}

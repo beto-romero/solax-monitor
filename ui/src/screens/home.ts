@@ -1,16 +1,17 @@
 import type { DaySummary, Metric, Projection } from "../api/bindings";
 import type { Context } from "../app/context";
 import type { Controller } from "../app/controller";
+import { statusOf, type Status } from "../app/shell";
 import type { AppState } from "../app/state";
 import { DayChart } from "../charts/day-chart";
 import { ChartGroup } from "../charts/group";
 import { createLegend } from "../charts/legend";
 import { buildPanes, seriesShown, type Pane } from "../charts/panes";
 import { chartHeights } from "../charts/sizing";
-import { formatNumber, timeOfDay } from "../format";
+import { formatNumber, timeOfDay, unitLabel } from "../format";
 import { pathKey, projectionPath } from "../projection-path";
 import { projectionLine } from "../projection-text";
-import { createCards } from "./cards";
+import { createCards, derateReading } from "./cards";
 import { createDayNav } from "./day-nav";
 import type { Screen } from "./screen";
 
@@ -40,8 +41,54 @@ export function meterCaption(watts: number, limitWatts: number, countdownSeconds
   return Math.round(fraction * 100) + "% of the inverter's limit";
 }
 
+export interface VerdictInput {
+  status: Status;
+  severity: string | null;
+  runMode: string | null;
+  watts: number;
+  limitWatts: number;
+  countdownSeconds: number | null;
+  deratingNow: boolean;
+  deratesToday: number | null;
+  faultReadingsToday: number;
+}
+
+export interface Verdict {
+  tone: "good" | "limit" | "heat" | "watch" | "fault" | "idle";
+  title: string;
+  detail: string;
+}
+
+/** What today has been like, for the words under a calm verdict. */
+function dayInWords(deratesToday: number | null, faultReadingsToday: number): string {
+  if (faultReadingsToday > 0) return "Faults were reported earlier today";
+  if (deratesToday) return `Stepped down for heat ${deratesToday} ${deratesToday === 1 ? "time" : "times"} today`;
+  return deratesToday === 0 ? "No faults or heat derating today" : "No faults today";
+}
+
+/**
+ * The one sentence that says how the plant is doing, worst news first: a
+ * fault, then silence, sleep, the morning's connection, heat, the limit, and
+ * only then all being well.
+ */
+export function verdictOf(input: VerdictInput): Verdict {
+  const day = dayInWords(input.deratesToday, input.faultReadingsToday);
+  const fraction = input.limitWatts > 0 ? input.watts / input.limitWatts : 0;
+  if (input.severity === "fault") return { tone: "fault", title: input.runMode ?? "Fault", detail: "The inverter reports a fault" };
+  if (input.status.kind === "stale") return { tone: "watch", title: input.status.text, detail: "These are the last figures received" };
+  if (input.severity === "warn") return { tone: "watch", title: input.runMode ?? "Check the inverter", detail: day };
+  if (input.status.kind === "asleep") return { tone: "idle", title: input.status.text, detail: day };
+  if (input.countdownSeconds !== null && input.countdownSeconds > 0) {
+    return { tone: "idle", title: `Connecting to the grid in ${input.countdownSeconds} s`, detail: day };
+  }
+  if (input.deratingNow) return { tone: "heat", title: "Held back by heat", detail: "The inverter stepped its output down to cool off" };
+  if (fraction >= 0.97) return { tone: "limit", title: "At the inverter's limit", detail: "The panels could give more than it delivers" };
+  if (fraction < 0.02) return { tone: "idle", title: "Not producing", detail: day };
+  return { tone: "good", title: "Producing normally", detail: day };
+}
+
 /** Which chart sits under the power chart, remembered per device. */
-const COMPANION_STORAGE_KEY = "solax.companion-chart";
+const COMPANION_STORAGE_KEY = "solax.companion-chart.v2";
 
 function rememberedCompanion(): string | null {
   try {
@@ -68,21 +115,38 @@ function boxHeight(element: Element | null): number {
 
 const MARKUP = `
   <section class="card hero loading">
-    <div class="hero-caption">
-      <span>Producing now</span>
+    <div class="verdict" data-tone="idle">
+      <span class="verdict-mark"></span>
+      <div class="verdict-words">
+        <h2 class="verdict-title">Waiting for the first reading</h2>
+        <p class="verdict-detail"></p>
+      </div>
       <span class="updated-group">
         <span class="tick"></span>
         <span id="updated">no reading yet</span>
       </span>
     </div>
-    <div class="hero-number">
-      <span id="hero-value">–</span><span class="hero-unit"></span>
+    <div class="gauges">
+      <div class="gauge gauge-power">
+        <p class="gauge-label">Producing now</p>
+        <div class="hero-number">
+          <span id="hero-value">–</span><span class="hero-unit"></span>
+        </div>
+        <div class="meter"><div class="meter-fill"></div></div>
+        <p class="muted meter-caption">Waiting for the first reading.</p>
+      </div>
+      <div class="gauge gauge-today">
+        <div class="hero-extras"></div>
+        <p class="hero-line projection-line" hidden></p>
+        <p class="hero-line peak-line" hidden></p>
+      </div>
+      <div class="gauge gauge-heat" hidden>
+        <p class="gauge-label">Inverter temperature</p>
+        <p class="gauge-value"><span class="heat-value">–</span><span class="unit"></span></p>
+        <p class="hero-line heat-peak" hidden></p>
+        <p class="hero-line heat-derating" hidden></p>
+      </div>
     </div>
-    <div class="meter"><div class="meter-fill"></div></div>
-    <p class="muted meter-caption">Waiting for the first reading.</p>
-    <div class="hero-extras"></div>
-    <p class="hero-line projection-line" hidden></p>
-    <p class="hero-line peak-line" hidden></p>
   </section>
   <section class="card chart-card">
     <div class="card-head">
@@ -91,8 +155,8 @@ const MARKUP = `
     </div>
     <div id="chart"></div>
     <div class="chart-key" hidden>
-      <span class="key at-limit">At the inverter's limit</span>
       <span class="key derating">Heat derating</span>
+      <span class="key at-limit">At the inverter's limit</span>
     </div>
     <div class="card-head companion-head">
       <div class="chart-tabs" role="group" aria-label="Second chart"></div>
@@ -121,11 +185,21 @@ export function createHome(context: Context, state: AppState, controller: Contro
   const hero = context.hero;
   const panes = buildPanes(context.registry.metrics, hero.key);
   const pane = panes.main;
+  // Temperature explains the power chart, so it comes first under it.
+  const heat = context.registry.metrics.find((metric) => metric.section === "inverter" && metric.unit === "C") ?? null;
+  const companions = [...panes.others].sort((first, second) => Number(second.metrics.includes(heat!)) - Number(first.metrics.includes(heat!)));
   const featured = context.registry.metrics.filter((metric) => metric.feature);
   const heroCard = find(".hero");
   const heroValue = find("#hero-value");
   const updated = find("#updated");
   const updatedGroup = find(".updated-group");
+  const verdictBox = find(".verdict");
+  const verdictTitle = find(".verdict-title");
+  const verdictDetail = find(".verdict-detail");
+  const heatGauge = find(".gauge-heat");
+  const heatValue = find(".heat-value");
+  const heatPeak = find(".heat-peak");
+  const heatDerating = find(".heat-derating");
   const meter = find(".meter-fill");
   const caption = find(".meter-caption");
   const projectionText = find(".projection-line");
@@ -145,6 +219,10 @@ export function createHome(context: Context, state: AppState, controller: Contro
   const dayNav = createDayNav(state, controller, () => visible);
   chartTitle.after(dayNav.element);
   find(".hero-unit").textContent = hero.unit;
+  if (heat) {
+    heatGauge.hidden = false;
+    find(".gauge-heat .unit").textContent = unitLabel(heat.unit);
+  }
 
   // Featured metrics ride on the hero card. Today's yield is the number most
   // worth answering at a glance.
@@ -235,7 +313,7 @@ export function createHome(context: Context, state: AppState, controller: Contro
   observer?.observe(companionElement);
 
   const chooseCompanion = (name: string | null) => {
-    const chosen = panes.others.find((candidate) => candidate.name === name) ?? panes.others[0] ?? null;
+    const chosen = companions.find((candidate) => candidate.name === name) ?? companions[0] ?? null;
     for (const button of companionTabs.children) {
       button.setAttribute("aria-pressed", String((button as HTMLElement).dataset.pane === chosen?.name));
     }
@@ -248,7 +326,7 @@ export function createHome(context: Context, state: AppState, controller: Contro
     companion.legend();
     if (chosen) rememberCompanion(chosen.name);
   };
-  for (const candidate of panes.others) {
+  for (const candidate of companions) {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "chart-tab";
@@ -263,8 +341,8 @@ export function createHome(context: Context, state: AppState, controller: Contro
     });
     companionTabs.appendChild(button);
   }
-  companionHead.hidden = panes.others.length === 0;
-  companionElement.hidden = panes.others.length === 0;
+  companionHead.hidden = companions.length === 0;
+  companionElement.hidden = companions.length === 0;
   chooseCompanion(rememberedCompanion());
 
   /**
@@ -277,7 +355,6 @@ export function createHome(context: Context, state: AppState, controller: Contro
     if (!visible) return;
     const page = document.querySelector(".page");
     const pageStyle = page ? getComputedStyle(page) : null;
-    const gap = parseFloat(getComputedStyle(element).rowGap) || 16;
     const cardTop = chartCard.getBoundingClientRect().top + window.scrollY;
     // Everything in the chart card but the canvases, from the parts around
     // them: a canvas takes its new size a moment after it is asked to, so
@@ -297,7 +374,7 @@ export function createHome(context: Context, state: AppState, controller: Contro
     const heights = chartHeights({
       viewportWidth: window.innerWidth,
       viewportHeight: window.innerHeight,
-      columnHeight: heroCard.offsetHeight + gap + cards.element.offsetHeight,
+      columnHeight: cards.element.offsetHeight,
       screenSpace:
         window.innerHeight -
         cardTop -
@@ -313,8 +390,55 @@ export function createHome(context: Context, state: AppState, controller: Contro
   const paintMeter = (watts: number, countdown: number | null) => {
     const fraction = context.limitWatts > 0 ? watts / context.limitWatts : 0;
     meter.style.width = (Math.max(0, Math.min(1, fraction)) * 100).toFixed(1) + "%";
-    meter.classList.toggle("ceiling", fraction >= 0.9);
     caption.textContent = meterCaption(watts, context.limitWatts, countdown);
+  };
+
+  const paintVerdict = () => {
+    const now = state.now;
+    const reading = now?.reading;
+    if (!now || !reading) return;
+    const delivered = reading.values[context.limitMetric.key];
+    const countdown = context.gridCountdown ? reading.values[context.gridCountdown.key] : null;
+    const lastDerate = now.stretches.derating[now.stretches.derating.length - 1];
+    const verdict = verdictOf({
+      status: statusOf({
+        lastReadingMs: state.lastReadingMs,
+        nowMs: Date.now(),
+        intervalSeconds: context.intervalSeconds,
+        sleeping: state.sleeping,
+        resumesAt: state.resumesAt,
+        troubled: state.troubled,
+        timezone: context.timezone,
+      }),
+      severity: reading.health.severity,
+      runMode: reading.health.run_mode,
+      watts: typeof delivered === "number" ? delivered : 0,
+      limitWatts: context.limitWatts,
+      countdownSeconds: typeof countdown === "number" ? countdown : null,
+      deratingNow: lastDerate !== undefined && reading.ts - lastDerate[1] <= context.intervalSeconds * 3,
+      deratesToday: now.today.derate_count ?? null,
+      faultReadingsToday: now.today.fault_readings,
+    });
+    verdictBox.dataset.tone = verdict.tone;
+    // A theme may take its mood from the verdict, so it is told page-wide.
+    document.documentElement.dataset.tone = verdict.tone;
+    verdictTitle.textContent = verdict.title;
+    verdictDetail.textContent = verdict.detail;
+  };
+
+  const paintHeat = () => {
+    const now = state.now;
+    const reading = now?.reading;
+    if (!now || !reading || !heat) return;
+    const unit = unitLabel(heat.unit);
+    heatValue.textContent = formatNumber(reading.values[heat.key], heat.decimals);
+    const peak = now.peaks[heat.key];
+    heatPeak.textContent = peak == null ? "" : `Highest today ${formatNumber(peak, heat.decimals)} ${unit}`;
+    heatPeak.hidden = peak == null;
+    const derating = derateReading(now.today.derate_count, now.today.derate_seconds);
+    heatDerating.textContent = derating === "None" ? "No heat derating today" : `Heat derating ${derating}`;
+    heatDerating.hidden = derating === null;
+    heatDerating.classList.toggle("alert-heat", Boolean(now.today.derate_count));
   };
 
   const paintHero = () => {
@@ -345,6 +469,8 @@ export function createHome(context: Context, state: AppState, controller: Contro
     projectionText.hidden = lines.projection === null;
     peakText.textContent = lines.peak ?? "";
     peakText.hidden = lines.peak === null;
+    paintVerdict();
+    paintHeat();
 
     // The dot and the time flash once for each reading the stream brings.
     if (state.readings !== blinkedFor) {
@@ -457,6 +583,10 @@ export function createHome(context: Context, state: AppState, controller: Contro
   state.subscribe(() => {
     if (visible) paint();
   });
+  // Silence brings no event, so the verdict checks for it on its own.
+  setInterval(() => {
+    if (visible) paintVerdict();
+  }, 5000);
   main.legend();
 
   return {

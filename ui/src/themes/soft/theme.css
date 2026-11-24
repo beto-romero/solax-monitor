@@ -1,0 +1,52 @@
+/* Soft. Moulded from one pale material; light is the only colour. */
+:root[data-theme="soft"] {
+  --night: #dbe2e6; --surface: #e3e9ec; --well: #dde4e8; --hairline: #c2ccd2;
+  --text: #26313a; --muted: #4a5761; --faint: #55626c;
+  --sun: #9a6400; --mains: #0b6f93; --ember: #b5400f; --alert: #c9281c; --good: #0b6f93;
+  --caution: #9a6400; --radius: 28px; --tip: #eef2f4;
+  --raised: -7px -7px 16px rgb(255 255 255 / 0.85), 8px 10px 22px rgb(120 140 150 / 0.38);
+  --pressed: inset 3px 3px 7px rgb(120 140 150 / 0.42), inset -3px -3px 7px rgb(255 255 255 / 0.9);
+  --light-from: #ffc94d; --light-to: #4fc3f0;
+}
+:root[data-theme="soft"][data-tone="idle"] { --light-from: #b4c2ca; --light-to: #c9d4da; }
+:root[data-theme="soft"]:is([data-tone="limit"], [data-tone="watch"]) { --light-from: #ffb020; --light-to: #ffe066; }
+:root[data-theme="soft"][data-tone="heat"] { --light-from: #ff5a1f; --light-to: #ffb02e; }
+:root[data-theme="soft"][data-tone="fault"] { --light-from: #d81e1e; --light-to: #ff5a3c; }
+[data-theme="soft"] body { font-family: ui-rounded, "SF Pro Rounded", "Segoe UI", system-ui, sans-serif; background: linear-gradient(115deg, #eef1f2, #d6dfe3 55%, #c8d3d9) fixed; }
+[data-theme="soft"] :is(.page, .screen) { row-gap: 26px; column-gap: 26px; }
+[data-theme="soft"] .card { border: 1px solid rgb(255 255 255 / 0.7); background: linear-gradient(135deg, #e9eef0, #dde5e9); box-shadow: var(--raised); }
+[data-theme="soft"] .chart-card.historical { outline: 2px solid var(--faint); }
+[data-theme="soft"] .tabs { padding: 5px; gap: 4px; border-radius: 999px; box-shadow: var(--pressed); }
+[data-theme="soft"] .tabs a[aria-current="page"] { background: linear-gradient(135deg, #f1f4f5, #dfe6ea); box-shadow: 2px 3px 8px rgb(120 140 150 / 0.4); }
+[data-theme="soft"] .pill { border: 0; box-shadow: var(--pressed); background: none; }
+[data-theme="soft"] .verdict .verdict-mark { width: 18px; height: 18px; background: radial-gradient(circle at 35% 30%, #fff8, transparent 50%), var(--light-from); box-shadow: 0 0 14px color-mix(in srgb, var(--light-from) 80%, transparent), inset -1px -2px 3px rgb(0 0 0 / 0.2); }
+[data-theme="soft"] .verdict[data-tone="good"] .verdict-mark { background: radial-gradient(circle at 35% 30%, #fff8, transparent 50%), #2ba4d6; box-shadow: 0 0 14px #4fc3f0; }
+[data-theme="soft"] .verdict-title { font-weight: 600; }
+[data-theme="soft"]:is([data-tone="heat"], [data-tone="fault"]) .verdict-title { color: var(--tone); font-size: clamp(24px, 3vw, 36px); }
+[data-theme="soft"] .gauges, [data-theme="soft"] .companion-head { border-top: 1px solid #c6d0d6; box-shadow: inset 0 1px 0 #fff; }
+[data-theme="soft"] .gauge { border-color: #c6d0d6; }
+[data-theme="soft"] #hero-value { font-size: 46px; font-weight: 600; }
+[data-theme="soft"] .ring { width: min(100%, 250px); border-radius: 50%; background: linear-gradient(135deg, #f3f6f7, #d3dce1); box-shadow: var(--raised); }
+[data-theme="soft"] .ring-track { stroke: #cfd8dd; stroke-width: 22; }
+[data-theme="soft"] .ring-fill { stroke-width: 18; stroke-linecap: round; transition: stroke-dasharray 500ms; filter: drop-shadow(0 0 7px color-mix(in srgb, var(--light-to) 70%, transparent)); }
+[data-theme="soft"] .ring-fill.empty { visibility: hidden; }
+[data-theme="soft"] .ring-from { stop-color: var(--light-from); }
+[data-theme="soft"] .ring-to { stop-color: var(--light-to); }
+[data-theme="soft"] .gauge-power.dialled .meter-caption { margin-top: 18px; }
+[data-theme="soft"] .gauge-power.dialled .gauge-label { margin-bottom: 14px; }
+[data-theme="soft"] :is(.gauge .hero-extra .value, .gauge-value) { font-weight: 600; }
+[data-theme="soft"] :is(.chart-tab, .day-nav button, .day-nav input, .theme-picker select) { border: 0; border-radius: 12px; background: linear-gradient(135deg, #eef2f4, #dbe3e7); color: var(--text); box-shadow: 2px 3px 7px rgb(120 140 150 / 0.38), -2px -2px 5px rgb(255 255 255 / 0.8); }
+[data-theme="soft"] .chart-tab[aria-pressed="true"] { background: #d9e1e5; box-shadow: var(--pressed); color: var(--text); font-weight: 600; }
+[data-theme="soft"] :is(#chart, #companion-chart, .bars) { margin-inline: 0; border-radius: 18px; padding: 6px 0; box-sizing: border-box; box-shadow: var(--pressed); overflow: hidden; }
+[data-theme="soft"] .stat { border-top-color: #c9d3d8; }
+[data-theme="soft"] .chart-tip { border: 0; box-shadow: 0 8px 20px rgb(80 100 110 / 0.35); }
+@media (prefers-reduced-motion: no-preference) {
+  [data-theme="soft"]:is([data-tone="heat"], [data-tone="fault"]) .ring-fill { animation: soft-breathe 2.2s ease-in-out infinite; }
+}
+@keyframes soft-breathe { 50% { stroke-width: 26; } }
+@media (max-width: 899px) {
+  [data-theme="soft"] .tabs { border-radius: 0; background: #e3e9ec; padding: 0 8px env(safe-area-inset-bottom); box-shadow: 0 -6px 16px rgb(120 140 150 / 0.25); }
+  [data-theme="soft"] .tabs a[aria-current="page"] { background: none; box-shadow: none; }
+}
+/* The pressed edge needs a little clear room beside the axis labels. */
+[data-theme="soft"] :is(#chart, #companion-chart, .bars) .u-wrap { translate: 4px 0; }

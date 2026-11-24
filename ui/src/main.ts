@@ -10,14 +10,21 @@ import { AppState } from "./app/state";
 import { DaysIndex } from "./data/days-index";
 import { TodayTracker } from "./data/today";
 import { localDate } from "./format";
+import { createThemePicker, theme } from "./themes";
 import { createHome } from "./screens/home";
 import { createMonth } from "./screens/month";
 import { createYear } from "./screens/year";
 import type { Screen } from "./screens/screen";
 
 async function start(): Promise<void> {
+  document.documentElement.dataset.theme = theme.id;
+  document.documentElement.style.colorScheme = theme.scheme;
+  const themeModule = await theme.load();
+  document.querySelector(".topbar-status")?.prepend(createThemePicker());
   const demoMode = import.meta.env.VITE_DEMO_MODE === "true";
-  const transport = demoMode ? new DemoTransport() : new BrowserTransport();
+  // A private recording replays only on a development server, never in a build.
+  const replay = import.meta.env.DEV && import.meta.env.VITE_REPLAY === "true" ? await (await import("./api/replay")).replayTransport() : null;
+  const transport = replay ?? (demoMode ? new DemoTransport() : new BrowserTransport());
   if (demoMode) document.documentElement.dataset.demo = "true";
   const context = contextFrom(transport, await transport.registry());
   const today = new TodayTracker(localDate(Date.now() / 1000, context.timezone), context.timezone);
@@ -30,7 +37,9 @@ async function start(): Promise<void> {
     year: createYear(context, state),
   };
   for (const screen of Object.values(screens)) container.appendChild(screen.element);
+  themeModule.mount?.(screens.home.element, context, state);
   startShell(context, state);
+  if (replay) (document.getElementById("subtitle") as HTMLElement).textContent = "Recorded readings · earlier days synthetic";
 
   // A month's bar or a page check picks the day Home shows with this event.
   window.addEventListener("solax:select-day", (event) => {

@@ -1,0 +1,41 @@
+/* Daylight. Thin large figures, hairlines, and the sky of the hour behind. */
+:root[data-theme="daylight"] {
+  --night: #dfeaf8; --surface: #ffffff; --well: #ffffff; --hairline: #c5d0e0;
+  --text: #0f1f3d; --muted: #40506e; --faint: #55637f;
+  --sun: #a86500; --mains: #0a7085; --ember: #b83a10; --alert: #c9281c; --good: #0a7085;
+  --caution: #a86500; --radius: 20px; --tip: #ffffff;
+  --sky-top: #9cc4ff; --sky-low: #f6ead9;
+}
+:root[data-theme="daylight"][data-sky="dawn"] { --sky-top: #b9c8ff; --sky-low: #ffdcc4; }
+:root[data-theme="daylight"][data-sky="dusk"] { --sky-top: #c3bdf5; --sky-low: #ffd3b0; }
+:root[data-theme="daylight"][data-sky="night"] { --sky-top: #b4bde0; --sky-low: #dfe3f2; }
+[data-theme="daylight"] body { font-family: "Helvetica Neue", Arial, sans-serif; background: linear-gradient(var(--sky-top), var(--sky-low) 90vh) fixed; }
+[data-theme="daylight"] .card { border: 0; background: rgb(255 255 255 / 0.86); }
+[data-theme="daylight"] .hero { background: none; padding-inline: 0; }
+[data-theme="daylight"] .chart-card.historical { outline: 2px solid var(--faint); }
+[data-theme="daylight"] .identity h1 { font-weight: 500; }
+[data-theme="daylight"] :is(.identity p, .footer, .theme-picker, .footer a) { color: var(--text); }
+[data-theme="daylight"] .tabs a { color: var(--text); }
+[data-theme="daylight"] .tabs a[aria-current="page"] { background: var(--text); color: #fff; }
+[data-theme="daylight"] .pill { border: 0; background: rgb(255 255 255 / 0.86); }
+[data-theme="daylight"] .verdict-title { font-size: clamp(26px, 3.2vw, 40px); font-weight: 400; letter-spacing: -0.02em; }
+[data-theme="daylight"] .verdict-detail, [data-theme="daylight"] .hero :is(.hero-line, .gauge-label, .label, .meter-caption, .hero-unit, .unit, #updated) { color: #22355a; }
+[data-theme="daylight"] .verdict .verdict-mark { background: var(--tone); }
+[data-theme="daylight"]:is([data-tone="heat"], [data-tone="fault"]) .verdict { padding: 16px 20px; border-radius: 20px; background: var(--tone); }
+[data-theme="daylight"]:is([data-tone="heat"], [data-tone="fault"]) .verdict :is(.verdict-title, .verdict-detail, #updated) { color: #fff; }
+[data-theme="daylight"]:is([data-tone="heat"], [data-tone="fault"]) .verdict .verdict-mark { background: #fff; }
+[data-theme="daylight"] .gauges, [data-theme="daylight"] .gauge { border-color: rgb(15 31 61 / 0.18); }
+[data-theme="daylight"] #hero-value { font-size: 60px; font-weight: 300; letter-spacing: -0.04em; }
+[data-theme="daylight"] .period-sum { font-weight: 300; }
+[data-theme="daylight"] .hero-number { translate: 0 14px; }
+[data-theme="daylight"] .period-body .hero-number, [data-theme="daylight"] .summary-card .hero-number { translate: none; }
+[data-theme="daylight"] .summary-card { padding: 22px; background: rgb(255 255 255 / 0.5); }
+[data-theme="daylight"] .tick-dial line { stroke: rgb(15 31 61 / 0.28); stroke-width: 1.4; stroke-linecap: round; }
+[data-theme="daylight"] .tick-dial .lit { stroke: #0f1f3d; stroke-width: 2.4; }
+[data-theme="daylight"] .tick-dial .tip { stroke: var(--tone); stroke-width: 4; }
+[data-theme="daylight"] :is(.gauge .hero-extra .value, .gauge-value) { font-weight: 300; font-size: 52px; }
+[data-theme="daylight"] .alert-heat { color: #a02f0a !important; font-weight: 600; }
+[data-theme="daylight"] .chart-tab[aria-pressed="true"] { background: var(--text); color: #fff; }
+[data-theme="daylight"] .tile-value { font-weight: 400; }
+[data-theme="daylight"] .chart-tip { box-shadow: 0 8px 24px rgb(15 31 61 / 0.18); }
+@media (max-width: 899px) { [data-theme="daylight"] .tabs { background: #fff; } [data-theme="daylight"] .tabs a[aria-current="page"] { background: none; color: var(--text); } [data-theme="daylight"] .tabs a { color: var(--muted); } }

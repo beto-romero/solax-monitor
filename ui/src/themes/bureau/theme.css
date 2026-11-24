@@ -1,0 +1,43 @@
+/* Bureau. A deep blue office terminal: thin double rules, filed forms. */
+:root[data-theme="bureau"] {
+  --night: #041224; --surface: #061a30; --well: #04101f; --hairline: #1f4f78;
+  --text: #d8f4ff; --muted: #8fc4dc; --faint: #78a9c4;
+  --sun: #9fe8ff; --mains: #7fb0ff; --ember: #ff9d7a; --alert: #ff8f9c; --good: #9fe8ff;
+  --caution: #ffd08a; --radius: 2px; --tip: #0a2745;
+}
+[data-theme="bureau"] body {
+  font-family: ui-monospace, Menlo, Consolas, "Liberation Mono", monospace;
+  background: radial-gradient(120% 90% at 50% 0, #0a2c50, var(--night) 70%) fixed;
+}
+[data-theme="bureau"] .card { border: 1px solid #3f86b0; outline: 1px solid var(--hairline); outline-offset: 3px; background: color-mix(in srgb, var(--surface) 88%, transparent); }
+[data-theme="bureau"] :is(.page, .screen) { row-gap: 22px; column-gap: 22px; }
+[data-theme="bureau"] .identity h1 { font-size: 18px; font-weight: 400; letter-spacing: 0.35em; text-transform: uppercase; }
+[data-theme="bureau"] .tabs { gap: 8px; }
+[data-theme="bureau"] .tabs a { border: 1px solid transparent; border-radius: 2px; color: var(--muted); }
+[data-theme="bureau"] .tabs a svg { display: none; }
+[data-theme="bureau"] .tabs a[aria-current="page"] { border-color: #3f86b0; background: #0c3357; color: var(--text); }
+[data-theme="bureau"] .pill { border-radius: 2px; }
+[data-theme="bureau"] .dot, [data-theme="bureau"] .tick { border-radius: 0; }
+[data-theme="bureau"] .verdict { padding: 12px 14px; background: var(--tone); color: #04182c; margin: -6px -8px 0; }
+[data-theme="bureau"] .verdict-title { font-size: clamp(18px, 2vw, 24px); font-weight: 600; letter-spacing: 0.02em; }
+[data-theme="bureau"] .verdict[data-tone] .verdict-title, [data-theme="bureau"] .verdict .verdict-detail, [data-theme="bureau"] .verdict #updated { color: #04182c; }
+[data-theme="bureau"] .verdict-mark { width: 14px; height: 14px; border-radius: 0; background: #04182c !important; }
+[data-theme="bureau"] .verdict .tick { background: #04182c; animation: none; }
+[data-theme="bureau"] .verdict #updated { animation: none !important; }
+[data-theme="bureau"] :is(.gauge-label, .hero-extra .label) { display: table; padding: 3px 8px; border: 1px solid #3f86b0; font-size: 12px; color: var(--text); }
+[data-theme="bureau"] #hero-value, [data-theme="bureau"] .period-sum { font-weight: 300; letter-spacing: 0.02em; text-shadow: 0 0 18px rgb(120 215 255 / 0.45); }
+[data-theme="bureau"] :is(.gauge .hero-extra .value, .gauge-value) { font-weight: 300; letter-spacing: 0; }
+[data-theme="bureau"] .gauges { border-top-style: double; border-top-width: 3px; }
+[data-theme="bureau"] .meter { height: 18px; border: 1px solid #3f86b0; border-radius: 0; padding: 2px; }
+[data-theme="bureau"] .meter-fill { border-radius: 0; background: var(--tone); }
+[data-theme="bureau"] .section-title { margin: -12px -12px 8px; padding: 8px 10px; border: 1px solid #3f86b0; background: #0c3357; font-weight: 400; }
+[data-theme="bureau"] .section-title::before { width: 10px; height: 10px; border-radius: 0; }
+[data-theme="bureau"] :is(.chart-tab, .day-nav button, .day-nav input, .theme-picker select) { border-radius: 2px; }
+[data-theme="bureau"] .chart-tab[aria-pressed="true"] { background: var(--text); color: #04182c; }
+[data-theme="bureau"] .tile-value { font-weight: 400; }
+[data-theme="bureau"] .ledger-title { display: flex; justify-content: space-between; margin: 0 0 10px; font-size: 12px; color: var(--muted); }
+[data-theme="bureau"] .ledger-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px 4px; }
+[data-theme="bureau"] .ledger i { font-style: normal; font-size: 13px; text-align: center; color: #5487a6; }
+[data-theme="bureau"] .ledger .recent { color: var(--text); }
+[data-theme="bureau"] .ledger .newest { background: var(--tone); color: #04182c; }
+@media (max-width: 899px) { [data-theme="bureau"] .verdict { flex-wrap: wrap; } }

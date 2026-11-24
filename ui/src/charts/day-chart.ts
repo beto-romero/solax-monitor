@@ -1,16 +1,18 @@
 import uPlot from "uplot";
 import type { Metric } from "../api/bindings";
 import type { DayData } from "../data/day-data";
-import { formatNumber } from "../format";
+import { formatNumber, unitLabel } from "../format";
 import type { ProjectionPath } from "../projection-path";
 import { alignWithProjection } from "./align";
+import { crossesPlugin } from "./crosses";
 import { ChartGroup, type GroupMember } from "./group";
 import { seriesName, type Pane } from "./panes";
 import { ceilingPlugin, peakBandHeight, peakPlugin } from "./plugins";
 import { operatingRange } from "./range";
 import { rebuildNeeded } from "./redraw";
 import { stretchesPlugin } from "./stretches";
-import { axisFont, axisTextSize, colour, FAINT, HAIRLINE, pixelRatio, WELL } from "./theme";
+import { axisFont, axisTextSize, colour, CROSSES, FAINT, GRID, HAIRLINE, pixelRatio } from "./theme";
+import { tooltipPlugin } from "./tooltip";
 import { defaultWindow } from "./window";
 
 const CURSOR_SYNC_KEY = "solax-day";
@@ -48,8 +50,8 @@ interface ResolvedAxis {
 function axisOptions(textSize: number, extra: uPlot.Axis): uPlot.Axis {
   return {
     stroke: FAINT,
-    grid: { stroke: HAIRLINE, width: 1 },
-    ticks: { stroke: HAIRLINE },
+    grid: { stroke: GRID, width: 1 },
+    ticks: { stroke: HAIRLINE, size: 4 },
     font: axisFont(textSize),
     ...extra,
   };
@@ -60,7 +62,7 @@ function axisOptions(textSize: number, extra: uPlot.Axis): uPlot.Axis {
 function tickValues(unit: string): uPlot.Axis.Values {
   return (_plot, ticks, _axisIndex, _space, increment) => {
     const decimals = Math.min(3, (String(increment || 1).split(".")[1] || "").length);
-    return ticks.map((tick) => (tick === null || tick === undefined ? "" : formatNumber(tick, decimals) + (unit ? " " + unit : "")));
+    return ticks.map((tick) => (tick === null || tick === undefined ? "" : formatNumber(tick, decimals) + (unit ? " " + unitLabel(unit) : "")));
   };
 }
 
@@ -108,7 +110,6 @@ export class DayChart implements GroupMember {
     this.group = options.group ?? new ChartGroup();
     this.group.join(this);
     element.dataset.chart = pane.name;
-    element.style.background = WELL;
   }
 
   /** Shows the window another chart in the group moved to. */
@@ -268,12 +269,12 @@ export class DayChart implements GroupMember {
     // label beside it.
     const axes: uPlot.Axis[] = [
       axisOptions(textSize, { space: () => textSize * 6 }),
-      axisOptions(textSize, { scale: "y", values: tickValues(pane.units[0]), size: axisSize }),
+      axisOptions(textSize, { scale: "y", values: tickValues(pane.units[0]), size: axisSize, space: 44 }),
     ];
     // The right axis draws no grid of its own: two sets of lines at unrelated
     // spacings would cross-hatch the plot.
     if (pane.units.length > 1) {
-      axes.push(axisOptions(textSize, { scale: "y2", side: 1, grid: { show: false }, values: tickValues(pane.units[1]), size: axisSize }));
+      axes.push(axisOptions(textSize, { scale: "y2", side: 1, grid: { show: false }, values: tickValues(pane.units[1]), size: axisSize, space: 44 }));
     }
 
     const producing = () => this.producingColumn;
@@ -281,14 +282,16 @@ export class DayChart implements GroupMember {
     // chart that reads the hero's power, against the hero's own axis.
     const plugins: uPlot.Plugin[] = [
       peakPlugin(pane, { textSize, timezone: options.timezone, producing, peaksWhileProducing: options.peaksWhileProducing }),
+      tooltipPlugin(pane, { timezone: options.timezone, stretches: () => this.data?.stretches ?? null }),
     ];
+    if (CROSSES) plugins.unshift(crossesPlugin());
     const hero = pane.metrics.find((metric) => metric.key === options.heroKey);
-    if (options.isMain && hero && hero.unit === "W") {
-      plugins.unshift(ceilingPlugin(options.limitWatts, pane.scaleOf(hero), textSize));
-      // The power chart is where both stretches show as a shape: a flat top
-      // at the limit, a step down when the inverter runs hot.
-      plugins.unshift(stretchesPlugin(() => this.data?.stretches ?? null, { watts: options.limitWatts, scale: pane.scaleOf(hero) }));
-    }
+    const reachesLimit = options.isMain && hero !== undefined && hero.unit === "W";
+    if (reachesLimit) plugins.unshift(ceilingPlugin(options.limitWatts, pane.scaleOf(hero), textSize));
+    // The power chart shows both stretches as a shape: a flat top at the
+    // limit, a step down when the inverter runs hot. Every other chart
+    // carries the heat, so its cause and effect line up down the page.
+    plugins.unshift(stretchesPlugin(() => this.data?.stretches ?? null, reachesLimit ? { watts: options.limitWatts, scale: pane.scaleOf(hero) } : null));
 
     const scales: uPlot.Scales = { x: { time: true } };
     for (const scale of ["y", "y2"] as const) {
@@ -316,6 +319,8 @@ export class DayChart implements GroupMember {
         height,
         plugins,
         padding,
+        // The tooltip reads the crosshair; the legend above switches lines.
+        legend: { show: false },
         scales,
         axes,
         series,
@@ -369,14 +374,6 @@ export class DayChart implements GroupMember {
     this.plot = plot;
     // Lets the page check read what the chart draws.
     Object.assign(this.element, { solaxPlot: plot });
-
-    // The projection's three series follow the yield line's own legend
-    // entry, so they stay out of the readout under the chart.
-    const legendRows = plot.root.querySelectorAll<HTMLElement>(".u-legend .u-series");
-    for (let index = firstProjected; index < series.length; index++) {
-      const row = legendRows[index];
-      if (row) row.style.display = "none";
-    }
 
     // uPlot's own double click resets to the extent of the data, readings
     // from before generation included. This runs after it and puts back the

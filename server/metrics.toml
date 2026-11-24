@@ -142,7 +142,9 @@ label = "Power"
 unit = "W"
 index = 3
 signed = true
-chart = "power"
+# Tracks the panels' power within a few percent, so it starts switched off
+# rather than doubling the line; its legend entry brings it in.
+chart = { name = "power", hidden = true }
 peak = "all_day"
 
 [[grid]]
