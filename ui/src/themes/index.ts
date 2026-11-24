@@ -219,7 +219,30 @@ const SOFT: Theme = {
   load: () => import("./soft"),
 };
 
-export const THEMES: Theme[] = [STANDARD, COMMAND, BUREAU, BRIDGE, PHOSPHOR, DAYLIGHT, SPECTRUM, SOFT];
+const TERMINAL: Theme = {
+  id: "terminal",
+  name: "Terminal",
+  scheme: "dark",
+  ink: {
+    solar: "#ffff55",
+    grid: "#55ffff",
+    inverter: "#ffaa33",
+    spare: "#ff77ff",
+    heat: "#ff6b6b",
+    text: "#f2f2f2",
+    muted: "#b8b8b8",
+    faint: "#a0a0a0",
+    hairline: "#7a7a7a",
+    gridline: "#262626",
+    surface: "#000000",
+    fontStyle: "",
+    fontFamily: 'ui-monospace, Menlo, Consolas, "Liberation Mono", monospace',
+    crosses: false,
+  },
+  load: () => import("./terminal"),
+};
+
+export const THEMES: Theme[] = [STANDARD, COMMAND, BUREAU, BRIDGE, PHOSPHOR, TERMINAL, DAYLIGHT, SPECTRUM, SOFT];
 
 const STORAGE_KEY = "solax.theme";
 

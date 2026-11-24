@@ -52,7 +52,7 @@ mal, así que aquí se diseña también **la versión en calma**.
 - Sin fuentes nuevas: usa Helvetica Neue condensada de macOS; en otros sistemas
   cae en Arial Narrow o similar y pierde carácter. Falta elegir una incluida.
 
-### Siete temas (2026-11-24)
+### Ocho temas (2026-11-24)
 
 Pedidos por Beto a partir de su carpeta de referencias. Nombres provisionales.
 Son estéticas propias: se toma el género, no las pantallas de cada obra.
@@ -63,6 +63,7 @@ Son estéticas propias: se toma el género, no las pantallas de cada obra.
 | Bureau | Severance | Libro de las últimas 72 lecturas reales; sin la cuadrícula de números flotantes ni el globo |
 | Bridge | Star Trek TNG | 16 lámparas; bloques redondeados con paleta propia, sin los marcos en codo |
 | Phosphor | Fallout | Aguja sobre pantalla de osciloscopio; sin carcasa, pestañas ni mascota |
+| Terminal | MS-DOS / terminal | Potencia en arte ASCII: cada cifra hecha de sí misma, numerales propios; barras de texto y marcos de doble línea |
 | Daylight | Simple | Arco de marcas y cielo que cambia con la hora de la lectura |
 | Spectrum | Moderno | Campos de color y puntos por media hora |
 | Soft | Skewmorphism | Anillo de luz moldeado que cambia con el estado |
