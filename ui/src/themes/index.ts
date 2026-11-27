@@ -268,7 +268,19 @@ export function createThemePicker(): HTMLElement {
   name.textContent = "Theme";
   const select = document.createElement("select");
   for (const option of THEMES) select.add(new Option(option.name, option.id, false, option === theme));
+  // On a development server the picker also leads to Mohana's original page
+  // and to the page of Home's states; neither is part of a build.
+  if (import.meta.env.DEV) {
+    const pages = document.createElement("optgroup");
+    pages.label = "Pages";
+    pages.append(new Option("Original (Mohana)", "page:/original/"), new Option("Home states", "page:/states.html"));
+    select.add(pages);
+  }
   select.addEventListener("change", () => {
+    if (select.value.startsWith("page:")) {
+      location.href = select.value.slice("page:".length);
+      return;
+    }
     try {
       localStorage.setItem(STORAGE_KEY, select.value);
       const address = new URL(location.href);

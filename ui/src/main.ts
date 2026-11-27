@@ -2,6 +2,7 @@ import "./styles/uplot.css";
 import "./styles/main.css";
 import { BrowserTransport } from "./api/browser";
 import { DemoTransport } from "./api/demo";
+import { withScene } from "./api/scenes";
 import { contextFrom } from "./app/context";
 import { Controller } from "./app/controller";
 import { parseRoute, paintTabs, type Route, type Tab } from "./app/router";
@@ -18,13 +19,16 @@ import type { Screen } from "./screens/screen";
 
 async function start(): Promise<void> {
   document.documentElement.dataset.theme = theme.id;
+  // The states page shows only the hero card of each staged state.
+  if (import.meta.env.DEV && new URLSearchParams(location.search).get("embed") === "hero") document.documentElement.dataset.embed = "hero";
   document.documentElement.style.colorScheme = theme.scheme;
   const themeModule = await theme.load();
   document.querySelector(".topbar-status")?.prepend(createThemePicker());
   const demoMode = import.meta.env.VITE_DEMO_MODE === "true";
   // A private recording replays only on a development server, never in a build.
   const replay = import.meta.env.DEV && import.meta.env.VITE_REPLAY === "true" ? await (await import("./api/replay")).replayTransport() : null;
-  const transport = replay ?? (demoMode ? new DemoTransport() : new BrowserTransport());
+  // A demo can be staged in any of Home's states with ?scene= in the address.
+  const transport = replay ? withScene(replay) : demoMode ? withScene(new DemoTransport()) : new BrowserTransport();
   if (demoMode) document.documentElement.dataset.demo = "true";
   const context = contextFrom(transport, await transport.registry());
   const today = new TodayTracker(localDate(Date.now() / 1000, context.timezone), context.timezone);

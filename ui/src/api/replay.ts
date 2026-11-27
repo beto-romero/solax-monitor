@@ -21,39 +21,6 @@ function shiftClock(offsetMs: number): void {
   globalThis.Date = ShiftedDate as DateConstructor;
 }
 
-/** The present as it would be in trouble, from ?scene= in the address, to
- * look at states the recording never reached. These figures are made up. */
-function staged(now: Now): Now {
-  const scene = new URLSearchParams(location.search).get("scene");
-  const { reading } = now;
-  if (!scene || !reading) return now;
-  const values = reading.values;
-  switch (scene) {
-    case "limit":
-      return { ...now, reading: { ...reading, values: { ...values, pv_power: 3352, ac_power: 3298 } } };
-    case "heat":
-      return {
-        ...now,
-        reading: { ...reading, values: { ...values, pv_power: 2510, ac_power: 2475, inverter_temperature: 85 } },
-        peaks: { ...now.peaks, inverter_temperature: 85 },
-        today: { ...now.today, derate_count: 3, derate_seconds: 1620 },
-        stretches: { at_limit: [], derating: [[reading.ts - 540, reading.ts]] },
-      };
-    case "fault":
-      return {
-        ...now,
-        reading: { ...reading, values: { ...values, pv_power: 0, ac_power: 0, run_mode: "Fault" }, health: { ...reading.health, run_mode: "Fault", severity: "fault" } },
-        today: { ...now.today, fault_readings: 12 },
-      };
-    case "idle":
-      return { ...now, reading: { ...reading, values: { ...values, pv_power: 0, ac_power: 0 } } };
-    case "stale":
-      return { ...now, reading: { ...reading, ts: reading.ts - 300 } };
-    default:
-      return now;
-  }
-}
-
 /**
  * The synthetic demo with one recorded day in place of its present. The
  * recording keeps its time of day in the browser's timezone and plays at the
@@ -112,7 +79,7 @@ class ReplayTransport extends DemoTransport {
     const today = this.summary(count);
     const values: Record<string, MetricValue | null> = { ...this.recorded.closing, total_kwh: today.lifetime_kwh };
     for (const key of Object.keys(this.recorded.series)) values[key] = this.column(key, count)[count - 1] ?? null;
-    return staged({
+    return {
       ...base,
       reading: base.reading && { ...base.reading, ts: this.recorded.ts[count - 1], values },
       peaks: this.peaks(count),
@@ -120,7 +87,7 @@ class ReplayTransport extends DemoTransport {
       stretches: NO_STRETCHES,
       // One day is too little to project from, so none is invented.
       projection: { state: "not_enough_history", days: 1 },
-    });
+    };
   }
 
   override day(date: string, points?: number): Promise<Day> {

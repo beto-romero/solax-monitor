@@ -1,7 +1,7 @@
 import type { Metric, Now } from "../api/bindings";
 import type { Context } from "../app/context";
 import { SECTION_TITLES } from "../charts/panes";
-import { formatDuration, formatNumber, unitLabel } from "../format";
+import { formatBytes, formatDuration, formatNumber, unitLabel } from "../format";
 
 const SECTION_ORDER = ["solar", "grid", "inverter"];
 
@@ -11,7 +11,10 @@ const SYSTEM_ROWS: Array<[string, string]> = [
   ["inverter_serial", "Inverter"],
   ["firmware", "Firmware"],
   ["api_type", "API type"],
-  ["poll_interval", "Polling every"],
+  ["poll_interval", "Updates every"],
+  ["recording_since", "Recording since"],
+  ["readings_stored", "Readings stored"],
+  ["on_disk", "On disk"],
 ];
 
 /** One row of a card: the live value and, for a metric with a peak, today's
@@ -73,15 +76,22 @@ function paintSerialToggle(button: HTMLButtonElement, shown: boolean): void {
   button.title = `${action} inverter number`;
 }
 
-/** The facts about the device, folded away until they are asked for. */
-function deviceCard(): HTMLElement {
-  const card = document.createElement("details");
-  card.className = "card device-card";
-  card.id = "system-card";
-  const summary = document.createElement("summary");
-  summary.textContent = "Device details";
-  card.appendChild(summary);
-  return card;
+/** The facts about the device and the store, in a window the footer opens. */
+function systemDialog(): HTMLDialogElement {
+  const dialog = document.createElement("dialog");
+  dialog.className = "card system-dialog";
+  dialog.id = "system-card";
+  dialog.setAttribute("aria-labelledby", "system-title");
+  dialog.innerHTML =
+    '<div class="system-head"><h2 id="system-title">System details</h2>' +
+    '<button type="button" class="system-close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button></div>';
+  dialog.querySelector(".system-close")!.addEventListener("click", () => dialog.close());
+  // A click on the backdrop, outside the window itself, closes it too.
+  dialog.addEventListener("click", (event) => {
+    if (event.target === dialog) dialog.close();
+  });
+  document.getElementById("system-open")?.addEventListener("click", () => dialog.showModal());
+  return dialog;
 }
 
 export interface Cards {
@@ -115,7 +125,7 @@ export function createCards(context: Context): Cards {
     }
     element.appendChild(card);
   }
-  const systemCard = deviceCard();
+  const systemCard = systemDialog();
   const systemValues = new Map<string, HTMLElement>();
   let showInverterNumber = false;
   try {
@@ -157,7 +167,7 @@ export function createCards(context: Context): Cards {
     }
     systemCard.appendChild(row);
   }
-  element.appendChild(systemCard);
+  document.body.appendChild(systemCard);
   if (showInverterNumber && document.documentElement.dataset.demo !== "true") {
     const subtitle = document.getElementById("subtitle");
     if (subtitle && context.registry.site.inverter_serial) subtitle.textContent = context.registry.site.inverter_serial + " on your local network";
@@ -188,6 +198,12 @@ export function createCards(context: Context): Cards {
       runMode?.classList.toggle("warn", severity === "warn");
       systemValues.get("firmware")!.textContent = reading.device.ver ?? "–";
       systemValues.get("api_type")!.textContent = reading.device.inverter_type === null ? "–" : String(reading.device.inverter_type);
+      systemValues.get("recording_since")!.textContent =
+        now.earliest == null
+          ? "–"
+          : new Date(now.earliest * 1000).toLocaleString(undefined, { timeZone: context.timezone, dateStyle: "medium", timeStyle: "short" });
+      systemValues.get("readings_stored")!.textContent = now.stored.toLocaleString();
+      systemValues.get("on_disk")!.textContent = formatBytes(now.storage_bytes);
     },
   };
 }

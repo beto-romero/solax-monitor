@@ -495,8 +495,46 @@ body.stale .hero-extra .value { color: var(--faint); }
   padding: 4px 2px 10px;
 }
 
-.footer a { color: var(--muted); text-decoration: none; }
-.footer a:hover { text-decoration: underline; }
+.footer { align-items: center; }
+.footer-info { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; }
+.footer-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--muted);
+  text-decoration: none;
+  cursor: pointer;
+}
+.footer-action:hover { color: var(--text); }
+.footer-action:hover span { text-decoration: underline; }
+.footer-action:focus-visible { outline: 2px solid var(--sun); outline-offset: 2px; border-radius: 4px; }
+.footer-action svg, .system-close svg { width: 14px; height: 14px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* The device and store facts, in a window over the page. */
+.system-dialog { width: min(420px, calc(100vw - 32px)); color: var(--text); padding: 18px 20px 14px; }
+.system-dialog::backdrop { background: rgb(0 0 0 / 0.55); }
+.system-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+.system-head h2 { margin: 0; font-size: 15px; font-weight: 600; }
+.system-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-right: -8px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.system-close svg { width: 18px; height: 18px; }
+.system-close:hover { color: var(--text); background: var(--hairline); }
 
 /* A reading older than a few intervals is dimmed rather than hidden, so a
    stalled poller looks stalled instead of looking like a quiet inverter. */
@@ -775,9 +813,6 @@ body.stale .gauge-value { color: var(--faint); }
 }
 
 /* The facts about the device stay out of the way until they are asked for. */
-.device-card { align-self: start; }
-.device-card summary { min-height: 20px; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; }
-.device-card[open] summary { margin-bottom: 10px; }
 
 /* The theme picker, quiet beside the status. */
 .theme-picker { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
@@ -819,7 +854,11 @@ body { overscroll-behavior-y: none; }
     min-height: 44px;
     min-width: 44px;
   }
-  .device-card summary { display: flex; align-items: center; min-height: 44px; }
-  .footer a { display: inline-flex; align-items: center; min-height: 44px; }
+  .footer-action { min-height: 44px; }
+  .system-close { width: 44px; height: 44px; margin-right: -12px; }
 }
 
+
+/* The states page frames Home to show its hero card alone. */
+:root[data-embed="hero"] :is(.topbar, .footer, .chart-card, .sections) { display: none; }
+:root[data-embed="hero"] .page { padding: 0; max-width: none; }

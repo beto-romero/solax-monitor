@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SolaX · Home states</title>
+<style>
+  :root { color-scheme: dark; --bg: #0b0b0c; --panel: #161618; --line: #2a2a2e; --text: #f2f2f2; --muted: #a0a0a6; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.4 Inter, system-ui, sans-serif; }
+  header { position: sticky; top: 0; z-index: 1; display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; padding: 14px 24px; background: var(--panel); border-bottom: 1px solid var(--line); }
+  h1 { margin: 0; font-size: 16px; font-weight: 600; }
+  header a { color: var(--text); }
+  label { display: inline-flex; gap: 8px; align-items: center; color: var(--muted); }
+  select, button { font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; }
+  button[aria-pressed="true"] { background: var(--text); color: var(--bg); }
+  .note { color: var(--muted); margin: 0; flex-basis: 100%; }
+  main { display: grid; gap: 28px; padding: 24px; grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--frame)), 1fr)); }
+  main[data-width="desktop"] { grid-template-columns: minmax(0, 1fr); }
+  figure { margin: 0; display: grid; gap: 8px; }
+  figcaption { display: flex; justify-content: space-between; gap: 12px; color: var(--muted); }
+  figcaption strong { color: var(--text); font-weight: 600; }
+  iframe { width: var(--frame); max-width: 100%; height: 320px; border: 1px solid var(--line); border-radius: 12px; display: block; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Home states</h1>
+  <label>Theme <select id="theme"></select></label>
+  <span id="widths"><button type="button" data-width="phone">Phone 390</button> <button type="button" data-width="desktop">Desktop 1180</button></span>
+  <a href="/">Back to the monitor</a>
+  <p class="note">Each frame is the real Home with made-up figures, showing only the main card. The Inverter card and the fault badge at the top also change with a fault; nothing else does.</p>
+</header>
+<main id="frames"></main>
+<script type="module" src="/src/states.ts"></script>
+</body>
+</html>

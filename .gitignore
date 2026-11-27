@@ -5,3 +5,4 @@ config.toml
 solax-data
 ui/dist
 ui/node_modules
+ui/.original

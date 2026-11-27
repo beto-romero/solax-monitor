@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { statusOf } from "./shell";
+import { footerLine, statusOf } from "./shell";
 
 const base = { intervalSeconds: 5, sleeping: false, resumesAt: null, troubled: false, timezone: "Asia/Kolkata", locale: "en-GB" };
 const nowMs = Date.UTC(2026, 9, 4, 12, 0, 0);
@@ -36,4 +36,12 @@ test("a failed stream reads as Reconnecting until a reading arrives", () => {
 
 test("no reading at all says it is waiting for one", () => {
   expect(statusOf({ ...base, lastReadingMs: 0, nowMs })).toEqual({ kind: "", text: "Waiting for the first reading", stale: false });
+});
+
+test("the footer line says how often it updates, since when it records and the room it takes", () => {
+  const input = { intervalSeconds: 5, storageBytes: 4_194_304, timezone: "Asia/Kolkata", demo: false, locale: "en-GB" };
+  const october30 = Date.UTC(2026, 9, 30, 1, 0) / 1000;
+  expect(footerLine({ ...input, earliest: october30, nowSeconds: Date.UTC(2026, 10, 26) / 1000 })).toBe("Updates every 5 s · Recording since 30 Oct · 4.0 MB");
+  // A record begun in an earlier year names that year.
+  expect(footerLine({ ...input, earliest: october30, nowSeconds: Date.UTC(2027, 1, 2) / 1000 })).toBe("Updates every 5 s · Recording since 30 Oct 2026 · 4.0 MB");
 });

@@ -49,6 +49,32 @@ export function statusOf(input: StatusInput): Status {
   return { kind: "live", text: "Live", stale: false };
 }
 
+export interface FooterLineInput {
+  intervalSeconds: number;
+  earliest: number;
+  storageBytes: number;
+  nowSeconds: number;
+  timezone: string;
+  demo: boolean;
+  locale?: string;
+}
+
+/** The footer's one line about the store: how often it updates, since when
+ * it records, and the room it takes. The year shows only once it differs. */
+export function footerLine(input: FooterLineInput): string {
+  const year = (seconds: number) => new Date(seconds * 1000).toLocaleString("en", { timeZone: input.timezone, year: "numeric" });
+  const since = new Date(input.earliest * 1000).toLocaleDateString(input.locale, {
+    timeZone: input.timezone,
+    day: "numeric",
+    month: "short",
+    ...(year(input.earliest) === year(input.nowSeconds) ? {} : { year: "numeric" }),
+  });
+  const updates = `Updates every ${input.intervalSeconds} s`;
+  return input.demo
+    ? `${updates} · Synthetic history since ${since}`
+    : `${updates} · Recording since ${since} · ${formatBytes(input.storageBytes, input.locale)}`;
+}
+
 function byId<Element extends HTMLElement>(id: string): Element {
   return document.getElementById(id) as Element;
 }
@@ -63,6 +89,7 @@ export function startShell(context: Context, state: AppState): void {
   const faultPillCodes = byId("fault-pill-codes");
   const footerNote = byId("footer-note");
   const exportLink = byId<HTMLAnchorElement>("export");
+  const exportText = byId("export-text");
 
   const isDemo = document.documentElement.dataset.demo === "true";
   if (isDemo) {
@@ -112,27 +139,22 @@ export function startShell(context: Context, state: AppState): void {
     if (!now) return;
     // A server that predates the stored history leaves these out entirely.
     if (now.earliest == null) {
-      footerNote.textContent = "No readings stored yet";
+      footerNote.textContent = `Updates every ${context.intervalSeconds} s · No readings stored yet`;
       return;
     }
-    const since = new Date(now.earliest * 1000).toLocaleString(undefined, {
-      timeZone: context.timezone,
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
+    footerNote.textContent = footerLine({
+      intervalSeconds: context.intervalSeconds,
+      earliest: now.earliest,
+      storageBytes: now.storage_bytes,
+      nowSeconds: Date.now() / 1000,
+      timezone: context.timezone,
+      demo: isDemo,
     });
-    // How much is kept, and the room it takes, for a sense of how it grows.
-    footerNote.textContent = isDemo
-      ? "Synthetic history back to " + since + " (" + now.stored.toLocaleString() + " simulated readings)"
-      : "History back to " + since + " (" + now.stored.toLocaleString() + " readings so far, " + formatBytes(now.storage_bytes) + " on disk)";
   };
 
   const paintExport = () => {
     exportLink.href = context.transport.exportUrl(state.selectedDate);
-    exportLink.textContent = state.isToday() ? "Download today as CSV" : "Download " + state.selectedDate + " as CSV";
+    exportText.textContent = state.isToday() ? "Download today as CSV" : "Download " + state.selectedDate + " as CSV";
   };
   // In demo mode the CSV is a browser-created snapshot, so refresh today's
   // blob at click time rather than rebuilding it on every live UI update.
