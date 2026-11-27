@@ -18,7 +18,7 @@ const SYSTEM_ROWS: Array<[string, string]> = [
 ];
 
 /** One row of a card: the live value and, for a metric with a peak, today's
- * peak after it, reading as "240.0 V / 260.0 V". */
+ * peak in a column of its own, under the card's "Now" and "Peak today". */
 function statRow(metric: Metric): HTMLElement {
   const row = document.createElement("div");
   row.className = "stat";
@@ -36,7 +36,8 @@ function statRow(metric: Metric): HTMLElement {
   const reading = document.createElement("span");
   reading.className = "reading";
   reading.innerHTML =
-    '<span class="live">–' + unit + "</span>" + (metric.peak ? '<span class="sep">/</span><span class="top">–' + unit + "</span>" : "");
+    '<span class="live">–' + unit + "</span>" + (metric.peak ? '<span class="top">–' + unit + "</span>" : "");
+  if (metric.peak) row.classList.add("peaked");
   row.append(label, reading);
   return row;
 }
@@ -56,13 +57,15 @@ function sectionCard(name: string, title: string, hasPeaks: boolean): HTMLElemen
   const heading = document.createElement("h2");
   heading.className = "section-title " + name;
   heading.textContent = title;
-  if (hasPeaks) {
-    const hint = document.createElement("span");
-    hint.className = "section-hint";
-    hint.textContent = "Now / peak today";
-    heading.appendChild(hint);
-  }
   card.appendChild(heading);
+  if (hasPeaks) {
+    // The columns' names, over the rows that have both figures.
+    const head = document.createElement("div");
+    head.className = "stat stat-head peaked";
+    head.setAttribute("aria-hidden", "true");
+    head.innerHTML = '<span class="name"></span><span class="reading"><span class="live">Now</span><span class="top">Peak today</span></span>';
+    card.appendChild(head);
+  }
   return card;
 }
 
@@ -118,8 +121,13 @@ export function createCards(context: Context): Cards {
   const names = [...bySection.keys()].sort((first, second) => (SECTION_ORDER.indexOf(first) + 1 || 99) - (SECTION_ORDER.indexOf(second) + 1 || 99));
   for (const name of names) {
     const card = sectionCard(name, SECTION_TITLES[name] ?? name, bySection.get(name)!.some((metric) => metric.peak));
-    for (const metric of bySection.get(name)!) {
+    // The rows with a peak come first, under the columns; the rest, which
+    // have one figure only, follow as a group of their own.
+    const metrics = bySection.get(name)!;
+    const ordered = [...metrics.filter((metric) => metric.peak), ...metrics.filter((metric) => !metric.peak)];
+    for (const metric of ordered) {
       const row = statRow(metric);
+      if (!metric.peak && metric === ordered.find((each) => !each.peak) && ordered[0].peak) row.classList.add("group-start");
       rows.set(metric.key, row);
       card.appendChild(row);
     }

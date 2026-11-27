@@ -84,8 +84,8 @@
 /* Rows with dot leaders. */
 [data-theme="terminal"] .stat { border-top: 0; padding: 4px 0; }
 [data-theme="terminal"] .stat .name { color: var(--muted); }
-[data-theme="terminal"] .stat:not(:has(.note)):not([data-system]) .name { display: flex; overflow: hidden; white-space: nowrap; }
-[data-theme="terminal"] .stat:not(:has(.note)):not([data-system]) .name::after { content: "......................................................."; flex: 1; min-width: 0; overflow: hidden; margin-left: 6px; color: #6a6a6a; }
+[data-theme="terminal"] .stat:not(:has(.note)):not([data-system]):not(.stat-head) .name { display: flex; overflow: hidden; white-space: nowrap; }
+[data-theme="terminal"] .stat:not(:has(.note)):not([data-system]):not(.stat-head) .name::after { content: "......................................................."; flex: 1; min-width: 0; overflow: hidden; margin-left: 6px; color: #6a6a6a; }
 [data-theme="terminal"] .stat .reading { font-weight: 400; }
 
 /* Controls. */
