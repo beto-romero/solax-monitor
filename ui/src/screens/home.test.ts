@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { heroLines, meterCaption, verdictOf, type VerdictInput } from "./home";
+import { heatLine, heroLines, meterCaption, verdictOf, type VerdictInput } from "./home";
 
 test("the meter's caption counts down to the grid connection, then measures against the real limit", () => {
   expect(meterCaption(0, 3300, 37)).toBe("Connecting to the grid in 37 s");
@@ -14,7 +14,7 @@ test("the hero card's lines come from today's figures", () => {
     { state: "on_pace", expected_kwh: 15, low_kwh: 13.6, high_kwh: 16.7, based_on_days: 14 },
     { decimals: 1, unit: "kWh", heroUnit: "W", timezone: "Asia/Kolkata", locale: "en-GB" },
   );
-  expect(lines.projection).toBe("On pace for 15.0 kWh · 13.6 to 16.7");
+  expect(lines.projection?.text).toBe("≈ 15.0 kWh by end of day");
   expect(lines.peak).toBe("Peak today 3,447 W at 10:41");
 });
 
@@ -25,7 +25,7 @@ test("no peak yet hides the peak line", () => {
     { decimals: 1, unit: "kWh", heroUnit: "W", timezone: "Asia/Kolkata", locale: "en-GB" },
   );
   expect(lines.peak).toBeNull();
-  expect(lines.projection).toBe("Projection after 3 full days");
+  expect(lines.projection?.text).toBe("Estimate after 3 full days");
 });
 
 const calm: VerdictInput = {
@@ -53,4 +53,14 @@ test("the verdict puts the worst news first", () => {
   const silent: VerdictInput = { ...hot, status: { kind: "stale", text: "No reading for 2 min", stale: true } };
   expect(verdictOf(silent).title).toBe("No reading for 2 min");
   expect(verdictOf({ ...silent, severity: "fault", runMode: "Fault" }).tone).toBe("fault");
+});
+
+test("the heat line shows only on a day the heat held output back", () => {
+  expect(heatLine(0, 0)).toBeNull();
+  expect(heatLine(null, null)).toBeNull();
+  expect(heatLine(3, 1620)).toEqual({
+    text: "Slowed by heat 3× · 27 min",
+    tip: "The inverter lowered its output to cool down. Today it did so 3 times, 27 min in total.",
+  });
+  expect(heatLine(1, 540)?.tip).toContain("1 time,");
 });

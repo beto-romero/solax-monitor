@@ -862,3 +862,51 @@ body { overscroll-behavior-y: none; }
 /* The states page frames Home to show its hero card alone. */
 :root[data-embed="hero"] :is(.topbar, .footer, .chart-card, .sections) { display: none; }
 :root[data-embed="hero"] .page { padding: 0; max-width: none; }
+
+/* A hero line with an info button, and the words the button opens. */
+.info-line { position: relative; display: flex; align-items: center; gap: 4px; }
+.info-line[hidden] { display: none; }
+.info-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--faint);
+  cursor: pointer;
+}
+.info-button svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.info-button:hover, .info-button[aria-expanded="true"] { color: var(--text); }
+.info-button:focus-visible { outline: 2px solid var(--sun); outline-offset: 1px; }
+.info-bubble {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 5;
+  width: max-content;
+  max-width: min(280px, calc(100vw - 48px));
+  padding: 8px 10px;
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.4;
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.35);
+}
+.info-line.tip-open .info-bubble { display: block; }
+
+/* The hero's three figures each carry a tick in the colour their line wears
+   on the charts, as the section cards' headings do. Standard only for now. */
+[data-theme="standard"] .marked :is(.gauge-label, .label) { display: flex; align-items: center; gap: 8px; }
+[data-theme="standard"] .marked :is(.gauge-label, .label)::before { content: ""; flex: none; width: 10px; height: 2px; border-radius: 2px; background: var(--mark); }
+/* The temperature turns orange only while the heat is holding output back. */
+[data-tone="heat"] .heat-value { color: var(--ember); }
+@media (pointer: coarse) {
+  .info-button { width: 44px; height: 44px; margin: -10px -10px -10px -6px; }
+}

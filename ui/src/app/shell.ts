@@ -62,6 +62,9 @@ export interface FooterLineInput {
 /** The footer's one line about the store: how often it updates, since when
  * it records, and the room it takes. The year shows only once it differs. */
 export function footerLine(input: FooterLineInput): string {
+  // The page is in English, so its dates are too, whatever the browser's
+  // language: "30 Oct", not "30 oct".
+  input = { ...input, locale: input.locale ?? "en-GB" };
   const year = (seconds: number) => new Date(seconds * 1000).toLocaleString("en", { timeZone: input.timezone, year: "numeric" });
   const since = new Date(input.earliest * 1000).toLocaleDateString(input.locale, {
     timeZone: input.timezone,

@@ -201,8 +201,8 @@ export function createCards(context: Context): Cards {
       systemValues.get("recording_since")!.textContent =
         now.earliest == null
           ? "–"
-          : new Date(now.earliest * 1000).toLocaleString(undefined, { timeZone: context.timezone, dateStyle: "medium", timeStyle: "short" });
-      systemValues.get("readings_stored")!.textContent = now.stored.toLocaleString();
+          : new Date(now.earliest * 1000).toLocaleString("en-GB", { timeZone: context.timezone, dateStyle: "medium", timeStyle: "short" });
+      systemValues.get("readings_stored")!.textContent = now.stored.toLocaleString("en-GB");
       systemValues.get("on_disk")!.textContent = formatBytes(now.storage_bytes);
     },
   };

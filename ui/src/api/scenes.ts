@@ -33,6 +33,8 @@ export function staged(now: Now, scene: string | null = sceneInAddress()): Now {
   const values = reading.values;
   const calm = { ...now.today, fault_readings: 0, derate_count: 0, derate_seconds: 0 };
   const noStretches = { at_limit: [], derating: [] };
+  // A plant with weeks recorded, so the end-of-day estimate shows.
+  const onPace: Now["projection"] = { state: "on_pace", expected_kwh: 11.7, low_kwh: 10.9, high_kwh: 12.4, based_on_days: 14 };
   switch (scene) {
     case "good":
       return {
@@ -41,6 +43,7 @@ export function staged(now: Now, scene: string | null = sceneInAddress()): Now {
         peaks: { ...now.peaks, inverter_temperature: 54 },
         today: calm,
         stretches: noStretches,
+        projection: onPace,
       };
     case "earlier-fault":
       return {

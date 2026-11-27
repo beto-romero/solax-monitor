@@ -8,21 +8,32 @@ import { ChartGroup } from "../charts/group";
 import { createLegend } from "../charts/legend";
 import { buildPanes, seriesShown, type Pane } from "../charts/panes";
 import { chartHeights } from "../charts/sizing";
-import { formatNumber, timeOfDay, unitLabel } from "../format";
+import { formatDuration, formatNumber, timeOfDay, unitLabel } from "../format";
 import { pathKey, projectionPath } from "../projection-path";
-import { projectionLine } from "../projection-text";
-import { createCards, derateReading } from "./cards";
+import { projectionLine, type ProjectionLine } from "../projection-text";
+import { createCards } from "./cards";
 import { createDayNav } from "./day-nav";
 import type { Screen } from "./screen";
 
 export interface HeroLineOptions { decimals: number; unit: string; heroUnit: string; timezone: string; locale?: string }
+
+/** The heat gauge's line on today's derating, said only when there was
+ * some: a short line with the counts, and a tip that puts it in words. */
+export function heatLine(count: number | null, seconds: number | null): ProjectionLine | null {
+  if (!count) return null;
+  const duration = formatDuration(seconds ?? 0);
+  return {
+    text: `Slowed by heat ${count}\u00d7 \u00b7 ${duration}`,
+    tip: `The inverter lowered its output to cool down. Today it did so ${count} ${count === 1 ? "time" : "times"}, ${duration} in total.`,
+  };
+}
 
 /** The hero card's two words-only lines: the projection and today's peak. */
 export function heroLines(
   today: Pick<DaySummary, "yield_kwh" | "peak_power_w" | "peak_at">,
   projection: Projection,
   options: HeroLineOptions,
-): { projection: string | null; peak: string | null } {
+): { projection: ProjectionLine | null; peak: string | null } {
   const peak =
     today.peak_power_w !== null && today.peak_at !== null
       ? `Peak today ${formatNumber(today.peak_power_w, 0, options.locale)} ${options.heroUnit} at ${timeOfDay(today.peak_at, options.timezone, options.locale)}`
@@ -137,14 +148,30 @@ const MARKUP = `
       </div>
       <div class="gauge gauge-today">
         <div class="hero-extras"></div>
-        <p class="hero-line projection-line" hidden></p>
+        <p class="hero-line info-line projection-line" hidden>
+          <span class="info-text"></span>
+          <span class="info-tip">
+            <button type="button" class="info-button" aria-label="How this is estimated" aria-expanded="false" aria-describedby="projection-tip">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+            </button>
+          </span>
+          <span class="info-bubble" id="projection-tip" role="tooltip"></span>
+        </p>
         <p class="hero-line peak-line" hidden></p>
       </div>
       <div class="gauge gauge-heat" hidden>
         <p class="gauge-label">Inverter temperature</p>
         <p class="gauge-value"><span class="heat-value">–</span><span class="unit"></span></p>
         <p class="hero-line heat-peak" hidden></p>
-        <p class="hero-line heat-derating" hidden></p>
+        <p class="hero-line info-line heat-derating alert-heat" hidden>
+          <span class="info-text"></span>
+          <span class="info-tip">
+            <button type="button" class="info-button" aria-label="What this means" aria-expanded="false" aria-describedby="heat-tip">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+            </button>
+          </span>
+          <span class="info-bubble" id="heat-tip" role="tooltip"></span>
+        </p>
       </div>
     </div>
   </section>
@@ -203,6 +230,41 @@ export function createHome(context: Context, state: AppState, controller: Contro
   const meter = find(".meter-fill");
   const caption = find(".meter-caption");
   const projectionText = find(".projection-line");
+  // A line with an info button: its words, and the tip the button opens.
+  // The tip opens on a hover where there is a pointer to hover with, and on
+  // a tap or a click everywhere, so a phone reaches it too.
+  const infoLines = [projectionText, heatDerating];
+  const showTip = (line: HTMLElement, open: boolean) => {
+    line.classList.toggle("tip-open", open);
+    line.querySelector(".info-button")!.setAttribute("aria-expanded", String(open));
+  };
+  const closeTips = (except?: HTMLElement) => {
+    for (const line of infoLines) if (line !== except) showTip(line, false);
+  };
+  const hovers = matchMedia("(hover: hover)").matches;
+  for (const line of infoLines) {
+    const button = line.querySelector<HTMLElement>(".info-button")!;
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      closeTips(line);
+      // Where a hover has already opened it, a click keeps it open.
+      showTip(line, hovers || button.getAttribute("aria-expanded") !== "true");
+    });
+    if (hovers) {
+      button.addEventListener("mouseenter", () => showTip(line, true));
+      button.addEventListener("mouseleave", () => showTip(line, false));
+    }
+  }
+  const paintInfo = (line: HTMLElement, words: ProjectionLine | null) => {
+    line.querySelector(".info-text")!.textContent = words?.text ?? "";
+    line.querySelector(".info-bubble")!.textContent = words?.tip ?? "";
+    line.hidden = words === null;
+    if (!words) showTip(line, false);
+  };
+  document.addEventListener("click", () => closeTips());
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closeTips();
+  });
   const peakText = find(".peak-line");
   const chartCard = find(".chart-card");
   const chartTitle = find(".chart-title");
@@ -219,6 +281,23 @@ export function createHome(context: Context, state: AppState, controller: Contro
   const dayNav = createDayNav(state, controller, () => visible);
   chartTitle.after(dayNav.element);
   find(".hero-unit").textContent = hero.unit;
+  // Each of the hero's three figures wears the colour of its line on the
+  // charts, as a tick beside its label, so the two read as the same thing.
+  const inkOf = (metric: Metric | null) => {
+    for (const each of [pane, ...panes.others]) {
+      const index = each?.metrics.indexOf(metric!) ?? -1;
+      if (each && index >= 0) return each.colours[index];
+    }
+    return null;
+  };
+  const mark = (target: HTMLElement, metric: Metric | null) => {
+    const ink = inkOf(metric);
+    if (!ink) return;
+    target.classList.add("marked");
+    target.style.setProperty("--mark", ink);
+  };
+  mark(find(".gauge-power"), context.registry.metrics.find((metric) => metric.key === hero.key) ?? null);
+  mark(heatGauge, heat);
   if (heat) {
     heatGauge.hidden = false;
     find(".gauge-heat .unit").textContent = unitLabel(heat.unit);
@@ -235,6 +314,7 @@ export function createHome(context: Context, state: AppState, controller: Contro
     line.querySelector(".label")!.textContent = metric.feature!.label;
     line.querySelector(".unit")!.textContent = metric.unit;
     featuredValues.set(metric.key, line.querySelector(".value")!.firstChild as Text);
+    if (metric.key === context.dailyYield.key) mark(line, metric);
     extras.appendChild(line);
   }
 
@@ -435,10 +515,7 @@ export function createHome(context: Context, state: AppState, controller: Contro
     const peak = now.peaks[heat.key];
     heatPeak.textContent = peak == null ? "" : `Highest today ${formatNumber(peak, heat.decimals)} ${unit}`;
     heatPeak.hidden = peak == null;
-    const derating = derateReading(now.today.derate_count, now.today.derate_seconds);
-    heatDerating.textContent = derating === "None" ? "No heat derating today" : `Heat derating ${derating}`;
-    heatDerating.hidden = derating === null;
-    heatDerating.classList.toggle("alert-heat", Boolean(now.today.derate_count));
+    paintInfo(heatDerating, heatLine(now.today.derate_count, now.today.derate_seconds));
   };
 
   const paintHero = () => {
@@ -465,8 +542,7 @@ export function createHome(context: Context, state: AppState, controller: Contro
       heroUnit: hero.unit,
       timezone: context.timezone,
     });
-    projectionText.textContent = lines.projection ?? "";
-    projectionText.hidden = lines.projection === null;
+    paintInfo(projectionText, lines.projection);
     peakText.textContent = lines.peak ?? "";
     peakText.hidden = lines.peak === null;
     paintVerdict();
